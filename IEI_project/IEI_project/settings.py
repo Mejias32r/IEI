@@ -37,9 +37,9 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
-    'wrapper_csv',
-    'wrapper_xml',
-    'wrapper_json'
+    'wrappers.wrapper_csv',
+    'wrappers.wrapper_xml',
+    'wrappers.wrapper_json'
 ]
 
 MIDDLEWARE = [
