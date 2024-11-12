@@ -27,7 +27,6 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
-
 # Application definition
 
 INSTALLED_APPS = [
@@ -37,6 +36,10 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+
+    'wrapper_csv',
+    'wrapper_xml',
+    'wrapper_json'
 ]
 
 MIDDLEWARE = [
@@ -75,8 +78,12 @@ WSGI_APPLICATION = 'IEI_project.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'postgres',         # Nombre de la base de datos en Supabase
+        'USER': 'postgres.kikxkyqthdmpxnywhaym',            # Usuario de Supabase
+        'PASSWORD': 'u0paLMIhCnjA52O9',            # Contraseña de Supabase
+        'HOST': 'aws-0-eu-central-1.pooler.supabase.com',             # Host de Supabase (por ejemplo: db.xxxxxxxxx.supabase.co)
+        'PORT': '5432',# Puerto, normalmente 5432 para PostgreSQL
     }
 }
 
@@ -103,7 +110,7 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/5.1/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'es-us'
 
 TIME_ZONE = 'UTC'
 
