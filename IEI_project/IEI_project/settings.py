@@ -39,7 +39,8 @@ INSTALLED_APPS = [
 
     'wrappers.wrapper_csv',
     'wrappers.wrapper_xml',
-    'wrappers.wrapper_json'
+    'wrappers.wrapper_json',
+    'main',
 ]
 
 MIDDLEWARE = [
