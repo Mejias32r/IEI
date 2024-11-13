@@ -79,12 +79,8 @@ WSGI_APPLICATION = 'IEI_project.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'postgres',         # Nombre de la base de datos en Supabase
-        'USER': 'postgres.kikxkyqthdmpxnywhaym',            # Usuario de Supabase
-        'PASSWORD': 'u0paLMIhCnjA52O9',            # Contraseña de Supabase
-        'HOST': 'aws-0-eu-central-1.pooler.supabase.com',             # Host de Supabase (por ejemplo: db.xxxxxxxxx.supabase.co)
-        'PORT': '5432',# Puerto, normalmente 5432 para PostgreSQL
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
 
