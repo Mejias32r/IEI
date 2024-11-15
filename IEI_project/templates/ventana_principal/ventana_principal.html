@@ -1,0 +1,28 @@
+{%load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IEI</title>
+    <!-- Enlace al archivo CSS externo -->
+    <link rel="stylesheet" href="{% static 'ventana_principal/style.css' %}">
+</head>
+<body>
+    <header>
+        <h1>Proyecto Integración e Interoperabilidad UPV 2024-2025</h1>
+    </header>
+    <main>
+        <p>Bienvenido, por favor elija la opción a realizar, quieres cargar algunos monumentos o quieres buscar monumentos.</p>
+        <div class="button-container">
+            <a href="{% url 'ventana_carga' %}" class="btn">Ir a Ventana de Carga</a>
+            <button class="btn" onclick="alert('Botón sin función asignada');">Botón sin función</button>
+        </div>
+    </main>
+    <footer>
+        <p>© 2024 Mi Proyecto</p>
+    </footer>
+    <!-- Enlace al archivo JS externo -->
+    <script src="{% static 'ventana_principal/script.js' %}"></script>
+</body>
+</html>
