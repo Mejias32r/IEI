@@ -1,0 +1,26 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mi Proyecto</title>
+    <!-- Enlace al archivo CSS externo -->
+    <link rel="stylesheet" href="{% static 'ventana_carga/cargar.css' %}">
+</head>
+<body>
+    <header>
+        <h1>Bienvenido a Mi Proyecto</h1>
+    </header>
+    <main>
+        <p>Este es un ejemplo de estructura de HTML con CSS y JavaScript separados.</p>
+        <button id="mi-boton">Haz clic aquí</button>
+    </main>
+    <footer>
+        <p>© 2024 Mi Proyecto</p>
+    </footer>
+    <!-- Enlace al archivo JS externo -->
+    <script src="{% static 'ventana_carga/cargar.js' %}"></script>
+</body>
+</html>
