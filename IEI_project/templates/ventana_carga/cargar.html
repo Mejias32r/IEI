@@ -1,5 +1,4 @@
 {% load static %}
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -7,20 +6,48 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mi Proyecto</title>
     <!-- Enlace al archivo CSS externo -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
     <link rel="stylesheet" href="{% static 'ventana_carga/style.css' %}">
 </head>
 <body>
     <header>
-        <h1>Bienvenido a Mi Proyecto</h1>
+        <h1>Cargar almacén de datos</h1>
     </header>
     <main>
-        <p>Este es un ejemplo de estructura de HTML con CSS y JavaScript separados.</p>
-        <button id="mi-boton">Haz clic aquí</button>
+        <div class="container-select-data">
+            <h3>Sleccione la funete de datos:</h3>
+            <div class="container-checkbox">
+                <div class ="checkbox-element">
+                    <input type="checkbox"id="todas" checked>
+                    <label for="todas"> Cargar todas</label>
+                </div>
+                <div class ="checkbox-element">
+                    <input type="checkbox" id="castilla_leon" checked>
+                    <label for="castilla_leon"> Castilla y León</label>
+                </div>
+                <div class ="checkbox-element">
+                    <input type="checkbox" id="comunidad_valenciana" checked>
+                    <label for="comunidad_valenciana"> Comunitat Valenciana</label>
+                </div>
+                <div class ="checkbox-element">
+                    <input type="checkbox" id="euskadi" checked>
+                    <label for ="euskadi"> Euskadi</label>
+                </div>
+            </div>
+        </div>
+        <div class="container-buttons">
+            <button class="enviar btn" id="enviar">Cargar</button>
+            <a href ="{% url 'ventana_principal' %}" class="cancelar btn" id="cancelar_carga">Cancelar carga</a>
+        </div>
+        <div class="container-result-box">
+            <p>Resultados de la carga:</p>
+        </div>
     </main>
     <footer>
         <p>© 2024 Mi Proyecto</p>
     </footer>
     <!-- Enlace al archivo JS externo -->
     <script src="{% static 'ventana_carga/script.js' %}"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
 </body>
 </html>
