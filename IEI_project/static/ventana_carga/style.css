@@ -1,0 +1,88 @@
+body{
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-rows: auto 1fr auto; /* Header y footer tienen altura automática; el div central crece */
+    height: 100vh; /* Altura total de la ventana */
+}
+
+main {
+    background: white;
+    width: 100%;
+    padding: 20px;
+    text-align: center;
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+    align-items: center;
+}
+
+header{
+    background-color: #4CAF50;
+    color: white;
+    padding: 1rem;
+    text-align: center  ;
+}
+
+footer{
+    background-color: #c6c7c6;
+    color: white;
+    padding: 1rem;
+    text-align: center;
+}
+
+.container-checkbox{
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.checkbox-element{
+    display: flex;
+    justify-content: start;
+}
+
+.checkbox-element label{
+    padding-left: 5px;
+    font-size: 20px;
+}
+
+.container-buttons{
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    margin-top: 2rem;
+    margin-bottom: 2rem;
+}
+
+.container-result-box{
+    display: flex;
+    border: 2px solid #9799a0d5;
+    border-radius: 5px;
+    height: 100%;
+    width: 100%;
+}
+
+.container-select-data{
+    display:flex;
+}
+
+.btn{
+    background-color: #6e90ffd5;
+    color: white;
+    padding: 10px 20px;
+    font-size: 16px;
+    cursor: pointer;
+    border-radius: 4px;
+    display: inline-block;
+}
+
+.enviar:hover{
+    background-color: #005f6b;
+}
+
+.cancelar:hover{
+    background-color:#922408 ; 
+}
+
