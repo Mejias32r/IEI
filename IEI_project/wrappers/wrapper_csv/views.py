@@ -14,6 +14,17 @@ from selenium.webdriver import ActionChains
 import time
 
 
+## This is the call that reads the csv file and responds to the front
+def readCSVtoJson():
+    driver = startPage()
+    print("Voy a abrir")
+    with open('cv.csv', encoding='utf-8') as file:
+        reader = csv.reader(file)
+        for row in reader:
+            print(row)
+
+
+##This method initializates the selenium scrapper
 def startPage():
     options = Options()
     options.add_argument("--headless")  # Activar modo headless
@@ -47,28 +58,10 @@ def startPage():
 
     text = driver.find_element(By.ID, "titlecoord2").text
     print(text)
-
-    list = transformData("706092","4257316",driver)
-    print(list[0]+" "+list[1])
-    
-    callAPI(list[0],list[1])
     return driver
 
 
-
-
-
-def readCSVtoJson():
-    driver = startPage()
-    print("Voy a abrir")
-    with open('cv.csv', encoding='utf-8') as file:
-        reader = csv.reader(file)
-        for row in reader:
-            print(row)
-
-
-
-
+##Introduces utmN and utmE to the page and gets longd and latgd
 def transformData(utmN,utmE,driver):
     input = driver.find_element(By.ID, "datacoord1")
     input.send_keys(utmN)
@@ -90,6 +83,8 @@ def transformData(utmN,utmE,driver):
     print(longd)
     return [longd,latgd]
 
+
+##Gets the longd and latgd using the API
 def callAPI(longd,latgd):
     url = "https://reverse-geocoder.p.rapidapi.com/v1/getAddressByLocation?lat="+latgd+"&lon="+longd+"&accept-language=en"
     headers = {
@@ -99,6 +94,8 @@ def callAPI(longd,latgd):
     response = requests.get(url,headers=headers)
     json = response.json()
     print(json)
+
+    return json
     
 
 
