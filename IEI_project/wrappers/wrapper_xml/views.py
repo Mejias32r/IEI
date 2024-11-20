@@ -18,8 +18,6 @@ def transform_xml_to_json(request):
 
     # Iterate through the monuments
     for monument in root.findall('monumento'):
-        temp_json = {}
-
         # Map the name
         name = monument.find('nombre')
         if name is not None:
@@ -30,10 +28,23 @@ def transform_xml_to_json(request):
         # Map the type of monument
         monument_type = monument.find('tipoMonumento')
         if monument_type is not None:
-            if monument_type.text == "Yacimientos arqueológicos":
-                temp_json['monumentType'] = "Archaeological Site"
+            type = monument_type.text
+            if type == "Yacimientos arqueológicos":
+                monumnentTypeConstructor = "Archaeological Site"
+            elif type == "Iglesias y Ermita" or type == "Catedral":
+                monumnentTypeConstructor = "Iglesia-Ermita"
+            elif type == "Monasterios" or type == "Santuarios" or (type == "Real Sitio" and ("Monasterio" in nameConstructor or "Convento" in nameConstructor)):
+                monumnentTypeConstructor = "Monasterio-Convento"
+            elif type == "Castillos":
+                monumnentTypeConstructor = "Castillo-Fortaleza-Torre"
+            elif type == "Palacio" or type == "Sinagoga" or type == "Fuentes" or (type == "Real Sitio" and ("Palacio" in nameConstructor)):
+                monumnentTypeConstructor = "Edificio singular"
+            elif type == "Puente":
+                monumnentTypeConstructor = "Puente"
+            elif type == "Otros edificios" or type == "Esculturas" or type == "Hórreos" or type == "Jardín Histórico" or type == "Paraje pintoresco":
+                monumnentTypeConstructor = "Otros"
             else:
-                todos.append(f"TODO: Map for 'tipoMonumento' {monument_type.text}.")
+                todos.append(f"TODO: Descartado")
         else:
             todos.append("TODO: Descartado.")
 
@@ -55,7 +66,7 @@ def transform_xml_to_json(request):
             elif len(codigoPostal.text) == 4:
                 todos.append("TODO: Reparado.")
                 codigoPostalConstructor = "0" + codigoPostal.text
-            first_two_digits = codigoPostal.text[:2]
+            first_two_digits = int(codigoPostal.text[:2])
             if first_two_digits > 52:
                 todos.append("TODO: Descartado.")
         else:
@@ -67,7 +78,7 @@ def transform_xml_to_json(request):
         if latitude is not None and longitude is not None:
             longitudeConstructor = latitude.text
             latitudeConstructor = latitude.text
-            if longitudeConstructor > 180 or longitudeConstructor < -180 or latitudeConstructor > 90 or latitudeConstructor < -90:
+            if float(longitudeConstructor) > 180 or float(longitudeConstructor) < -180 or float(latitudeConstructor) > 90 or float(latitudeConstructor) < -90:
                 todos.append("TODO: Descartado.")
         else:
             todos.append("TODO: Descartado.")
@@ -81,11 +92,11 @@ def transform_xml_to_json(request):
         else:
             descriptionConstructor = ""
             if constructionType is not None:
-                descriptionConstructor =+ f"Este monumento es un {constructionType.text}"
+                descriptionConstructor += f"Este monumento es un {constructionType.text}"
                 if historical_periods is not None:
                     list_historical_periods = ','.join([period.text for period in historical_periods])
                     descriptionConstructor += f" que pertenece a el/los periodos históricos {list_historical_periods}"
-            descriptionConstructor =+ "."               
+            descriptionConstructor += "."               
             
         # Map the province
         province = monument.find('./poblacion/provincia')
@@ -112,11 +123,11 @@ def transform_xml_to_json(request):
         # Add the monument's data to the result JSON
         monument = Monumento.objects.create(
             nombre=nameConstructor,
-            tipo=temp_json['monumentType'],
+            tipo=monumnentTypeConstructor,
             direccion=addressConstructor,
             longitud=longitudeConstructor,
             latitud=latitudeConstructor,
-            codigo_postal = codigoPostalConstructor,
+            codigo_postal=codigoPostalConstructor,
             descripcion=descriptionConstructor,
             en_localidad= localidadConstructor,
         )
