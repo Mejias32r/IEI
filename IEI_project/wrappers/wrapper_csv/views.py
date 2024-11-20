@@ -10,12 +10,8 @@ import requests
 from selenium.webdriver import ActionChains
 
 
+def readCSVtoJson(request):
 
-import time
-
-
-## This is the call that reads the csv file and responds to the front
-def readCSVtoJson():
     driver = startPage()
     print("Voy a abrir")
     with open('cv.csv', encoding='utf-8') as file:
