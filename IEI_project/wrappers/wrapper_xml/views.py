@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from IEI_project.settings import FUENTES_DE_DATOS_DIR
-from main.models import Monument
+from main.models import Monumento
 from main.models import Localidad
 from main.models import Provincia
 
@@ -41,11 +41,13 @@ def transform_xml_to_json(request):
         street = monument.find('calle')
         municipality = monument.find('./poblacion/municipio')
         if street is not None and municipality is not None:
-            temp_json['address'] = f"{street.text}, {municipality.text}"
+            addressConstructor = f"{street.text}, {municipality.text}"
         elif municipality is not None:
-            temp_json['address'] = f"Pertenece al municipio {municipality.text}"
+            addressConstructor = f"Pertenece al municipio {municipality.text}"
+        else:
+            addressConstructor = ""
         
-        # Map the postal code
+        # Map the postal code (revisar que cuadra rango)
         codigoPostal = monument.find('codigoPostal')
         if codigoPostal is not None:
             if len(codigoPostal.text) == 5:
@@ -53,17 +55,20 @@ def transform_xml_to_json(request):
             elif len(codigoPostal.text) == 4:
                 todos.append("TODO: Reparado.")
                 codigoPostalConstructor = "0" + codigoPostal.text
+            first_two_digits = codigoPostal.text[:2]
+            if first_two_digits > 52:
+                todos.append("TODO: Descartado.")
         else:
             todos.append("TODO: Descartado.")
             
-        # Map coordinates
+        # Map coordinates (revisar que cuadra rango)
         latitude = monument.find('./coordenadas/latitud')
         longitude = monument.find('./coordenadas/longitud')
         if latitude is not None and longitude is not None:
-            temp_json['coordinates'] = {
-                "latitude": latitude.text,
-                "longitude": longitude.text
-            }
+            longitudeConstructor = latitude.text
+            latitudeConstructor = latitude.text
+            if longitudeConstructor > 180 or longitudeConstructor < -180 or latitudeConstructor > 90 or latitudeConstructor < -90:
+                todos.append("TODO: Descartado.")
         else:
             todos.append("TODO: Descartado.")
 
@@ -87,7 +92,7 @@ def transform_xml_to_json(request):
         if province is not None:
             provinceConstructor = Provincia(nombre = province.text)
             if not Provincia.objects.filter(nombre=province.text).exists():
-                provinceConstructor.save
+                provinceConstructor.save()
             else:
                 provinceConstructor = Provincia.objects.get(nombre=province.text)
         else:
@@ -98,19 +103,19 @@ def transform_xml_to_json(request):
         if localidad is not None:
             localidadConstructor = Localidad(nombre = localidad.text, en_provincia = provinceConstructor)
             if not Localidad.objects.filter(nombre=localidad.text).exists():
-                localidadConstructor.save
+                localidadConstructor.save()
             else:
                 localidadConstructor = Localidad.objects.get(nombre=localidad.text)
         else:
             todos.append("TODO: Descartado.")
 
         # Add the monument's data to the result JSON
-        monument = Monument.objects.create(
+        monument = Monumento.objects.create(
             nombre=nameConstructor,
             tipo=temp_json['monumentType'],
-            direccion=temp_json['address'],
-            longitud=temp_json['coordinates']['longitude'],
-            latitud=temp_json['coordinates']['latitude'],
+            direccion=addressConstructor,
+            longitud=longitudeConstructor,
+            latitud=latitudeConstructor,
             codigo_postal = codigoPostalConstructor,
             descripcion=descriptionConstructor,
             en_localidad= localidadConstructor,
@@ -118,6 +123,3 @@ def transform_xml_to_json(request):
         monument.save()
     
     return report
-
-
-#revisar valores de latitud y longitud y codigo postal no mayor que 52
