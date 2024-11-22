@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from django.db import transaction
-from django.http import HttpResponse
+from django.http import JsonResponse
 from IEI_project.settings import FUENTES_DE_DATOS_DIR
 from main.models import Monumento
 from main.models import Localidad
@@ -137,4 +137,4 @@ def transform_xml_to_json(request):
         monument.save()
     
     # return report
-    return HttpResponse("Data processed successfully.", content_type="text/plain")
+    return JsonResponse(report)
