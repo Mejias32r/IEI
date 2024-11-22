@@ -1,4 +1,5 @@
 from django.shortcuts import render
+from django.db import transaction
 from IEI_project.settings import FUENTES_DE_DATOS_DIR
 from main.models import Monumento
 from main.models import Localidad
@@ -7,7 +8,8 @@ from main.models import Provincia
 import xml.etree.ElementTree as ET
 import json
 
-def transform_xml_to_json(request):
+@transaction.atomic
+def transform_xml_to_json():
     # Parse the XML file
     tree = ET.parse(FUENTES_DE_DATOS_DIR + '/monumentos_castilla_y_leon.xml')
     root = tree.getroot()
