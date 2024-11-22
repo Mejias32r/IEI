@@ -1,5 +1,6 @@
 from django.shortcuts import render
 from django.db import transaction
+from django.http import HttpResponse
 from IEI_project.settings import FUENTES_DE_DATOS_DIR
 from main.models import Monumento
 from main.models import Localidad
@@ -9,7 +10,7 @@ import xml.etree.ElementTree as ET
 import json
 
 @transaction.atomic
-def transform_xml_to_json():
+def transform_xml_to_json(request):
     # Parse the XML file
     tree = ET.parse(FUENTES_DE_DATOS_DIR + '/monumentos_castilla_y_leon.xml')
     root = tree.getroot()
@@ -135,4 +136,5 @@ def transform_xml_to_json():
         )
         monument.save()
     
-    return report
+    # return report
+    return HttpResponse("Data processed successfully.", content_type="text/plain")
