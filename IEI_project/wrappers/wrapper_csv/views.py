@@ -9,39 +9,45 @@ from selenium.webdriver.edge.service import Service
 import requests
 from selenium.webdriver import ActionChains
 from IEI_project.settings import FUENTES_DE_DATOS_DIR
+from main.models import Monumento, Provincia, Localidad
 
 
 def buildMonument(id, denominacion: str, provincia, municipio, utmeste, utmnorte, codclasificacion, clasificacion, codcategoria, categoria):
-    nombre = id
-    descripcion = clasificacion
+    m = Monumento()
+    p = Provincia( nombre = provincia )
+    l = Localidad( nombre = municipio, en_provincia = p )
+    m.nombre = denominacion
+    m.descripcion = clasificacion
+    getCategoria(denominacion, categoria, m)
+    
+    ##TODO: sacar dirección, código postal, longitud y latitud
+    #print(m.nombre, l.nombre, l.en_provincia) #testing
 
+def getCategoria(denominacion, categoria, m):
     if (categoria == "Zona arqueológica"):
-        tipo = "Yacimiento arqueológico"
+        m.tipo = "Yacimiento arqueológico"
     elif (categoria == "Fondo de Museo (primera)" or 
           categoria == "Archivo" or 
           categoria == "Jardín Histórico"):
-        tipo = "Edificio Singular"
+        m.tipo = "Edificio Singular"
     elif (categoria == "Monumento"):
-        if( "Iglesia"   in denominacion or 
-            "Ermita"    in denominacion or
-            "Catedral"  in denominacion):
-            categoria = "Iglesia-Monasterio"
+        if  ( "Iglesia"     in denominacion or 
+              "Ermita"      in denominacion or
+              "Catedral"    in denominacion):
+            m.tipo = "Iglesia-Monasterio"
         elif( "Monasterio"  in denominacion or
               "Convento"    in denominacion):
-              categoria = "Monasterio-Convento"
+            m.tipo = "Monasterio-Convento"
         elif( "Castillo"    in denominacion or
               "Fortaleza"   in denominacion or
               "Torre"       in denominacion):
-              categoria = "Castillo-Fortaleza-Torre"
+            m.tipo = "Castillo-Fortaleza-Torre"
         elif( denominacion.startswith("Puente") ):
-            categoria = "Puente"
+            m.tipo = "Puente"
         else:
-            categoria = "Edificio Singular"
+            m.tipo = "Edificio Singular"
     else:
-        categoria = "Otros"
-    ##TODO: sacar dirección, código postal, longitud y latitud
-    ##TODO: guardar también los datos de la localidad y hacerlo todo en su correcta clase
-
+        m.tipo = "Otros"
 
 
 def readCSVtoJson(request):
