@@ -8,16 +8,53 @@ from selenium.webdriver.support.ui import Select
 from selenium.webdriver.edge.service import Service
 import requests
 from selenium.webdriver import ActionChains
+from IEI_project.settings import FUENTES_DE_DATOS_DIR
+
+
+def buildMonument(id, denominacion: str, provincia, municipio, utmeste, utmnorte, codclasificacion, clasificacion, codcategoria, categoria):
+    nombre = id
+    descripcion = clasificacion
+
+    if (categoria == "Zona arqueológica"):
+        tipo = "Yacimiento arqueológico"
+    elif (categoria == "Fondo de Museo (primera)" or 
+          categoria == "Archivo" or 
+          categoria == "Jardín Histórico"):
+        tipo = "Edificio Singular"
+    elif (categoria == "Monumento"):
+        if( "Iglesia"   in denominacion or 
+            "Ermita"    in denominacion or
+            "Catedral"  in denominacion):
+            categoria = "Iglesia-Monasterio"
+        elif( "Monasterio"  in denominacion or
+              "Convento"    in denominacion):
+              categoria = "Monasterio-Convento"
+        elif( "Castillo"    in denominacion or
+              "Fortaleza"   in denominacion or
+              "Torre"       in denominacion):
+              categoria = "Castillo-Fortaleza-Torre"
+        elif( denominacion.startswith("Puente") ):
+            categoria = "Puente"
+        else:
+            categoria = "Edificio Singular"
+    else:
+        categoria = "Otros"
+    print(categoria)
+
 
 
 def readCSVtoJson(request):
 
-    driver = startPage()
-    print("Voy a abrir")
-    with open('cv.csv', encoding='utf-8') as file:
-        reader = csv.reader(file)
+    ##driver = startPage()
+    with open(FUENTES_DE_DATOS_DIR + '/monumentos_comunidad_valenciana.csv', encoding='utf-8') as file:
+        reader = csv.reader(file, delimiter=";")
+        next(reader)
         for row in reader:
-            print(row)
+            id, denominacion, provincia, municipio, utmeste, utmnorte, codclasificacion, clasificacion, codcategoria, categoria = row
+            buildMonument(id, denominacion, provincia, municipio, utmeste, utmnorte, codclasificacion, clasificacion, codcategoria, categoria)
+
+readCSVtoJson(1)
+
 
 
 ##This method initializates the selenium scrapper
