@@ -19,8 +19,8 @@ def buildMonument(id, denominacion: str, provincia, municipio, utmeste, utmnorte
     m.nombre = denominacion
     m.descripcion = clasificacion
     getCategoria(denominacion, categoria, m)
-    
-    ##TODO: sacar dirección, código postal, longitud y latitud
+
+    ##TODO: sacar dirección, código postal, longitud y latitud. También hace falta guardar correctamente las clases.
     #print(m.nombre, l.nombre, l.en_provincia) #testing
 
 def getCategoria(denominacion, categoria, m):
