@@ -39,7 +39,8 @@ def buildMonument(id, denominacion: str, provincia, municipio, utmeste, utmnorte
             categoria = "Edificio Singular"
     else:
         categoria = "Otros"
-    print(categoria)
+    ##TODO: sacar dirección, código postal, longitud y latitud
+    ##TODO: guardar también los datos de la localidad y hacerlo todo en su correcta clase
 
 
 
