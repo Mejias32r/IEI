@@ -21,5 +21,8 @@ from . import views
 urlpatterns = [
     path('', views.cargar_ventana_principal, name='ventana_principal'),
     path('admin/', admin.site.urls),
-    path('main/', include('main.urls'))
+    path('main/', include('main.urls')),
+    path('wrapper-csv/', include('wrappers.wrapper_csv.urls')),
+    path('wrapper-xml/', include('wrappers.wrapper_xml.urls')),
+    path('wrapper-json/', include('wrappers.wrapper_json.urls')),
 ]

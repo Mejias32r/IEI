@@ -8,20 +8,60 @@ from selenium.webdriver.support.ui import Select
 from selenium.webdriver.edge.service import Service
 import requests
 from selenium.webdriver import ActionChains
+from IEI_project.settings import FUENTES_DE_DATOS_DIR
+from main.models import Monumento, Provincia, Localidad
 
 
+def buildMonument(id, denominacion: str, provincia, municipio, utmeste, utmnorte, codclasificacion, clasificacion, codcategoria, categoria):
+    m = Monumento()
+    p = Provincia( nombre = provincia )
+    l = Localidad( nombre = municipio, en_provincia = p )
+    m.nombre = denominacion
+    m.descripcion = clasificacion
+    getCategoria(denominacion, categoria, m)
 
-import time
+    ##TODO: sacar dirección, código postal, longitud y latitud. También hace falta guardar correctamente las clases.
+    #print(m.nombre, l.nombre, l.en_provincia) #testing
+
+def getCategoria(denominacion, categoria, m):
+    if (categoria == "Zona arqueológica"):
+        m.tipo = "Yacimiento arqueológico"
+    elif (categoria == "Fondo de Museo (primera)" or 
+          categoria == "Archivo" or 
+          categoria == "Jardín Histórico"):
+        m.tipo = "Edificio Singular"
+    elif (categoria == "Monumento"):
+        if  ( "Iglesia"     in denominacion or 
+              "Ermita"      in denominacion or
+              "Catedral"    in denominacion):
+            m.tipo = "Iglesia-Monasterio"
+        elif( "Monasterio"  in denominacion or
+              "Convento"    in denominacion):
+            m.tipo = "Monasterio-Convento"
+        elif( "Castillo"    in denominacion or
+              "Fortaleza"   in denominacion or
+              "Torre"       in denominacion):
+            m.tipo = "Castillo-Fortaleza-Torre"
+        elif( denominacion.startswith("Puente") ):
+            m.tipo = "Puente"
+        else:
+            m.tipo = "Edificio Singular"
+    else:
+        m.tipo = "Otros"
 
 
-## This is the call that reads the csv file and responds to the front
-def readCSVtoJson():
-    driver = startPage()
-    print("Voy a abrir")
-    with open('cv.csv', encoding='utf-8') as file:
-        reader = csv.reader(file)
+def readCSVtoJson(request):
+
+    ##driver = startPage()
+    with open(FUENTES_DE_DATOS_DIR + '/monumentos_comunidad_valenciana.csv', encoding='utf-8') as file:
+        reader = csv.reader(file, delimiter=";")
+        next(reader)
         for row in reader:
-            print(row)
+            id, denominacion, provincia, municipio, utmeste, utmnorte, codclasificacion, clasificacion, codcategoria, categoria = row
+            buildMonument(id, denominacion, provincia, municipio, utmeste, utmnorte, codclasificacion, clasificacion, codcategoria, categoria)
+
+readCSVtoJson(1)
+
 
 
 ##This method initializates the selenium scrapper
