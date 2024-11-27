@@ -17,6 +17,7 @@ def transform_xml_to_json(request):
 
     # Initialize the resulting JSON structure and counters
     report = {
+        "Total": {"count": 0},
         "Registrados": {"count": 0},
         "Descartados": {"count": 0, "razones": []},
         "Reparados": {"count": 0, "detalles": []},
@@ -25,6 +26,8 @@ def transform_xml_to_json(request):
     # Iterate through the monuments
     for monument in root.findall('monumento'):
         try:
+            report["Total"]["count"] += 1
+            
             # Map the name
             name = monument.find('nombre')
             nameConstructor = name.text if name is not None else ""
