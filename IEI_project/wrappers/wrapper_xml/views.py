@@ -12,7 +12,7 @@ import json
 @transaction.atomic
 def transform_xml_to_json(request):
     # Parse the XML file
-    tree = ET.parse(FUENTES_DE_DATOS_DIR + '/monumentos_castilla_y_leon.xml')
+    tree = ET.parse(FUENTES_DE_DATOS_DIR + '/monumentos_entrega.xml')
     root = tree.getroot()
 
     # Initialize the resulting JSON structure and counters
