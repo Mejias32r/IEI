@@ -34,7 +34,7 @@ def transform_xml_to_json(request):
 
             # Map the type of monument
             monument_type = monument.find('tipoMonumento')
-            if monument_type is not None and monument_type.text != "":
+            if monument_type is not None and monument_type.text is not None:
                 type = monument_type.text
                 if type == "Yacimientos arqueológicos":
                     monumnentTypeConstructor = "Archaeological Site"
@@ -62,7 +62,7 @@ def transform_xml_to_json(request):
             # Map the address
             street = monument.find('calle')
             municipality = monument.find('./poblacion/municipio')
-            if street is not None and municipality is not None and street.text != "" and municipality.text != "":
+            if street is not None and municipality is not None and street.text is not None and municipality.text is not None:
                 addressConstructor = f"{street.text}, {municipality.text}"
             elif municipality is not None:
                 addressConstructor = f"Pertenece al municipio {municipality.text}"
@@ -72,7 +72,7 @@ def transform_xml_to_json(request):
             # Map coordinates
             latitude = monument.find('./coordenadas/latitud')
             longitude = monument.find('./coordenadas/longitud')
-            if latitude is not None and longitude is not None and latitude.text != "" and longitude.text != "":
+            if latitude is not None and longitude is not None and latitude.text is not None and longitude.text is not None:
                 latitudeConstructor = latitude.text.replace('#', '').strip()
                 longitudeConstructor = longitude.text.replace('#', '').strip()
                 if float(longitudeConstructor) > 180 or float(longitudeConstructor) < -180 or float(latitudeConstructor) > 90 or float(latitudeConstructor) < -90:
@@ -101,7 +101,7 @@ def transform_xml_to_json(request):
 
             # Map the province
             province = monument.find('./poblacion/provincia')
-            if province is not None and province.text != "":
+            if province is not None and province.text is not None:
                 provinceConstructor = Provincia(nombre=province.text)
                 if not Provincia.objects.filter(nombre=province.text).exists():
                     provinceConstructor.save()
@@ -114,7 +114,7 @@ def transform_xml_to_json(request):
 
             # Map the localidad
             localidad = monument.find('./poblacion/localidad')
-            if localidad is not None and localidad.text != "":
+            if localidad is not None and localidad.text is not None:
                 localidadConstructor = Localidad(nombre=localidad.text, en_provincia=provinceConstructor)
                 if not Localidad.objects.filter(nombre=localidad.text).exists():
                     localidadConstructor.save()
@@ -127,7 +127,7 @@ def transform_xml_to_json(request):
             
             # Map the postal code
             codigoPostal = monument.find('codigoPostal')
-            if codigoPostal is not None and codigoPostal.text != "":
+            if codigoPostal is not None and codigoPostal.text is not None:
                 if len(codigoPostal.text) == 5:
                     codigoPostalConstructor = codigoPostal.text
                 elif len(codigoPostal.text) == 4:
