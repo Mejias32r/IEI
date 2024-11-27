@@ -2,5 +2,5 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
-    path('', views.readCSVtoJson, name="ventana_carga")
+    path('', views.readCSVtoJson, name="ventana_carga_csv")
 ]
