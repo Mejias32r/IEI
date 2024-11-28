@@ -18,7 +18,7 @@ def buildMonument(driver, id, denominacion: str, provincia, municipio, utmeste, 
     try:
         report["Total"]["count"] += 1
         m = Monumento()
-        p = Provincia( nombre = provincia )
+        p = buildProvince(provincia)
         l = Localidad( nombre = municipio, en_provincia = p )
         m.nombre = denominacion
         m.descripcion = clasificacion
@@ -30,9 +30,21 @@ def buildMonument(driver, id, denominacion: str, provincia, municipio, utmeste, 
     except Exception as e:
             report["Descartados"]["count"] += 1
             report["Descartados"]["razones"].append(f"Error inesperado: {str(e)}.")
-
     ##TODO: sacar dirección, código postal, longitud y latitud. También hace falta guardar correctamente las clases.
     #print(m.nombre, l.nombre, l.en_provincia) #testing
+
+def buildProvince(provincia):
+    if provincia is None:
+        report["Descartados"]["count"] += 1
+        report["Descartados"]["razones"].append("Falta la provincia.")
+        return
+    p = Provincia( nombre = provincia )
+    if not Provincia.objects.filter(nombre = provincia).exists():
+        p.save()
+    else:
+        p = Provincia.objects.get(nombre = provincia)
+    return p
+
 
 def getCategoria(denominacion, categoria, m):
     if (categoria == "Zona arqueológica"):
