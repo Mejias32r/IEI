@@ -1,4 +1,5 @@
 import time
+from django.http import JsonResponse
 from django.shortcuts import render
 import csv
 from selenium import webdriver
@@ -14,14 +15,21 @@ from main.models import Monumento, Provincia, Localidad
 
 
 def buildMonument(driver, id, denominacion: str, provincia, municipio, utmeste, utmnorte, codclasificacion, clasificacion, codcategoria, categoria):
-    m = Monumento()
-    p = Provincia( nombre = provincia )
-    l = Localidad( nombre = municipio, en_provincia = p )
-    m.nombre = denominacion
-    m.descripcion = clasificacion
-    getCategoria(denominacion, categoria, m)
-    #transformData(utmnorte, utmeste, driver)
-
+    try:
+        report["Total"]["count"] += 1
+        m = Monumento()
+        p = Provincia( nombre = provincia )
+        l = Localidad( nombre = municipio, en_provincia = p )
+        m.nombre = denominacion
+        m.descripcion = clasificacion
+        getCategoria(denominacion, categoria, m)
+        #m.longitud, m.latitud = transformData(utmnorte, utmeste, driver)
+        #m.save()
+        report["Registrados"]["count"] += 1
+        print(m.tipo)
+    except Exception as e:
+            report["Descartados"]["count"] += 1
+            report["Descartados"]["razones"].append(f"Error inesperado: {str(e)}.")
 
     ##TODO: sacar dirección, código postal, longitud y latitud. También hace falta guardar correctamente las clases.
     #print(m.nombre, l.nombre, l.en_provincia) #testing
@@ -51,18 +59,16 @@ def getCategoria(denominacion, categoria, m):
             m.tipo = "Edificio Singular"
     else:
         m.tipo = "Otros"
-    print(m.tipo)
-
 
 def readCSVtoJson(request):
-
-    driver = startPage()
+    driver = "placeholder"#startPage()
     with open(FUENTES_DE_DATOS_DIR + '/monumentos_comunidad_valenciana.csv', encoding='utf-8') as file:
         reader = csv.reader(file, delimiter=";")
         next(reader)
         for row in reader:
             id, denominacion, provincia, municipio, utmeste, utmnorte, codclasificacion, clasificacion, codcategoria, categoria = row
             buildMonument(driver, id, denominacion, provincia, municipio, utmeste, utmnorte, codclasificacion, clasificacion, codcategoria, categoria)
+    return JsonResponse(report)
 
 
 
@@ -140,6 +146,13 @@ def callAPI(longd,latgd):
     print(json)
 
     return json
-    
+
+##Define structure of report
+report = {
+        "Total": {"count": 0},
+        "Registrados": {"count": 0},
+        "Descartados": {"count": 0, "razones": []},
+        "Reparados": {"count": 0, "detalles": []},
+    }
 ##Execute
 readCSVtoJson(1)
