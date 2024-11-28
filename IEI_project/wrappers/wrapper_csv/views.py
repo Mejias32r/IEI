@@ -1,3 +1,4 @@
+import time
 from django.shortcuts import render
 import csv
 from selenium import webdriver
@@ -12,13 +13,15 @@ from IEI_project.settings import FUENTES_DE_DATOS_DIR
 from main.models import Monumento, Provincia, Localidad
 
 
-def buildMonument(id, denominacion: str, provincia, municipio, utmeste, utmnorte, codclasificacion, clasificacion, codcategoria, categoria):
+def buildMonument(driver, id, denominacion: str, provincia, municipio, utmeste, utmnorte, codclasificacion, clasificacion, codcategoria, categoria):
     m = Monumento()
     p = Provincia( nombre = provincia )
     l = Localidad( nombre = municipio, en_provincia = p )
     m.nombre = denominacion
     m.descripcion = clasificacion
     getCategoria(denominacion, categoria, m)
+    #transformData(utmnorte, utmeste, driver)
+
 
     ##TODO: sacar dirección, código postal, longitud y latitud. También hace falta guardar correctamente las clases.
     #print(m.nombre, l.nombre, l.en_provincia) #testing
@@ -48,19 +51,18 @@ def getCategoria(denominacion, categoria, m):
             m.tipo = "Edificio Singular"
     else:
         m.tipo = "Otros"
+    print(m.tipo)
 
 
 def readCSVtoJson(request):
 
-    ##driver = startPage()
+    driver = startPage()
     with open(FUENTES_DE_DATOS_DIR + '/monumentos_comunidad_valenciana.csv', encoding='utf-8') as file:
         reader = csv.reader(file, delimiter=";")
         next(reader)
         for row in reader:
             id, denominacion, provincia, municipio, utmeste, utmnorte, codclasificacion, clasificacion, codcategoria, categoria = row
-            buildMonument(id, denominacion, provincia, municipio, utmeste, utmnorte, codclasificacion, clasificacion, codcategoria, categoria)
-
-readCSVtoJson(1)
+            buildMonument(driver, id, denominacion, provincia, municipio, utmeste, utmnorte, codclasificacion, clasificacion, codcategoria, categoria)
 
 
 
@@ -88,7 +90,9 @@ def startPage():
     layout.click()
  
     layout2 = driver.find_element(By.XPATH, "//*[@id='typecoords']/div[2]/div")
-    layout2.click()
+    #layout2.click()
+    actions = ActionChains(driver)
+    actions.move_to_element(layout2).click().perform()
 
     layout3 = driver.find_element(By.XPATH, "//*[@id='modotrab']/div[1]/div")
     #layout3.click()
@@ -137,9 +141,5 @@ def callAPI(longd,latgd):
 
     return json
     
-
-
-
-
- 
-
+##Execute
+readCSVtoJson(1)
