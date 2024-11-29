@@ -27,17 +27,18 @@ def buildMonument(driver, id, denominacion: str, provincia, municipio, utmeste, 
         ##TODO: sacar dirección, código postal, longitud y latitud.
         #m.save()
         report["Registrados"]["count"] += 1
-        print(m.tipo)
+        #print(m.tipo) #Test
+    except ValueError as e:
+        report["Descartados"]["count"] += 1
+        report["Descartados"]["razones"].append(e)
     except Exception as e:
-            report["Descartados"]["count"] += 1
-            report["Descartados"]["razones"].append(f"Error inesperado: {str(e)}.")
-            print(e)
+        report["Descartados"]["count"] += 1
+        report["Descartados"]["razones"].append(f"Error inesperado: {str(e)}.")
+        print(e)
 
 def buildProvince(provincia):
     if provincia is None or provincia == "":
-        report["Descartados"]["count"] += 1
-        report["Descartados"]["razones"].append("Falta la provincia.")
-        return
+        raise ValueError("Falta la provincia")
     p = Provincia( nombre = provincia )
     if not Provincia.objects.filter(nombre = provincia).exists():
         p.save()
@@ -47,9 +48,7 @@ def buildProvince(provincia):
 
 def buildCity(municipio, p):
     if municipio is None or municipio == "":
-        report["Descartados"]["count"] += 1
-        report["Descartados"]["razones"].append("Falta la localidad.")
-        return
+        raise ValueError("Falta la localidad")
     l = Localidad(nombre=municipio, en_provincia=p)
     if not Localidad.objects.filter(nombre=municipio).exists():
         l.save()
