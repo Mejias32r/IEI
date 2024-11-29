@@ -23,8 +23,9 @@ def buildMonument(driver, id, denominacion: str, provincia, municipio, utmeste, 
         m.nombre = denominacion
         m.descripcion = clasificacion
         getCategoria(denominacion, categoria, m)
+        #TODO: Descomentar cuando transformData() funcione correctamente
         #m.longitud, m.latitud = transformData(utmnorte, utmeste, driver)
-        ##TODO: sacar dirección, código postal, longitud y latitud.
+        #m.codigo_postal, m.direccion = getPostalandAddress(m.longitud, m.latitud)
         #m.save()
         report["Registrados"]["count"] += 1
         #print(m.tipo) #Test
@@ -81,6 +82,22 @@ def getCategoria(denominacion, categoria, m):
             m.tipo = "Edificio Singular"
     else:
         m.tipo = "Otros"
+
+def getPostalandAddress(longd, latgd):
+    #"-0.37966""39.47391" for valencia. Tests
+    data = callAPI(latgd=latgd,longd=longd)
+    address_data = data.get("address", {})
+    road = address_data.get("road", "")
+    house_number = address_data.get("house_number", "")
+    city = address_data.get("city", "")
+    postcode = address_data.get("postcode", "")
+    province = address_data.get("province", "")
+    country = address_data.get("country", "")
+
+    # Crear la dirección completa
+    address = f"{road} {house_number}, {postcode}, {city}, {province}, {country}".strip()
+
+    return postcode, address
 
 def readCSVtoJson(request):
     driver = "placeholder"#startPage()
@@ -157,7 +174,7 @@ def transformData(utmN,utmE,driver):
 
 
 ##Gets the longd and latgd using the API
-def callAPI(longd,latgd):
+def callAPI(longd : str,latgd : str):
     url = "https://reverse-geocoder.p.rapidapi.com/v1/getAddressByLocation?lat="+latgd+"&lon="+longd+"&accept-language=en"
     headers = {
     "X-RapidAPI-Key": "6c2aa156f8mshecf0f16b67af41ep119458jsnff7511e9d279",
