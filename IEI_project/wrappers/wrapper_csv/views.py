@@ -212,4 +212,4 @@ report = {
         "Reparados": {"count": 0, "detalles": []},
     }
 ##Execute
-readCSVtoJson(1)
+#readCSVtoJson(1)
