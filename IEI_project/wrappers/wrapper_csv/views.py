@@ -24,11 +24,11 @@ def buildMonument(driver, id, denominacion: str, provincia, municipio, utmeste, 
         m.descripcion = clasificacion
         getCategoria(denominacion, categoria, m)
         #TODO: Descomentar cuando transformData() funcione correctamente
-        #m.longitud, m.latitud = transformData(utmnorte, utmeste, driver)
-        #m.codigo_postal, m.direccion = getPostalandAddress(m.longitud, m.latitud)
-        #m.save()
+        m.longitud, m.latitud = transformData(utmnorte, utmeste, driver)
+        m.codigo_postal, m.direccion = getPostalandAddress(m.longitud, m.latitud)
+        m.save()
         report["Registrados"]["count"] += 1
-        #print(m.tipo) #Test
+        print(m.tipo) #Test
     except ValueError as e:
         report["Descartados"]["count"] += 1
         report["Descartados"]["razones"].append(e)
@@ -100,13 +100,14 @@ def getPostalandAddress(longd, latgd):
     return postcode, address
 
 def readCSVtoJson(request):
-    driver = "placeholder"#startPage()
+    driver = startPage()
     with open(FUENTES_DE_DATOS_DIR + '/monumentos_comunidad_valenciana.csv', encoding='utf-8') as file:
         reader = csv.reader(file, delimiter=";")
         next(reader)
         for row in reader:
             id, denominacion, provincia, municipio, utmeste, utmnorte, codclasificacion, clasificacion, codcategoria, categoria = row
             buildMonument(driver, id, denominacion, provincia, municipio, utmeste, utmnorte, codclasificacion, clasificacion, codcategoria, categoria)
+            print("una fila procesada  ----------------------------------")
     return JsonResponse(report)
 
 
@@ -132,7 +133,9 @@ def startPage():
     select.select_by_index(0)
 
     layout = driver.find_element(By.XPATH, "//*[@id='sistrefe']/div[1]/div")
-    layout.click()
+    #layout.click()
+    actions = ActionChains(driver)
+    actions.move_to_element(layout).click().perform()
  
     layout2 = driver.find_element(By.XPATH, "//*[@id='typecoords']/div[2]/div")
     #layout2.click()
@@ -153,18 +156,32 @@ def startPage():
 ##Introduces utmN and utmE to the page and gets longd and latgd
 def transformData(utmN,utmE,driver):
     input = driver.find_element(By.ID, "datacoord1")
+    input.clear()
     input.send_keys(utmN)
     input2 = driver.find_element(By.ID, "datacoord2")
+    input2.clear()
     input2.send_keys(utmE)
 
+    time.sleep(5)
+
     calculate = driver.find_element(By.ID,"trd_calc")
-    calculate.click()
+    actions = ActionChains(driver)
+    actions.move_to_element(calculate).click().perform()
+    #calculate.click()
 
     result = driver.find_element(By.ID,"results_manual").get_attribute("style")
-    while result != "display: block;":
-        result = driver.find_element(By.ID,"results_manual").get_attribute("style")
-        time.sleep(1)
-        print("Esperando")
+    if result != "display: block;":
+        while result != "display: block;":
+            result = driver.find_element(By.ID,"results_manual").get_attribute("style")
+            time.sleep(1)
+            print("Esperando primero")
+    else:
+        longd = driver.find_element(By.ID,"txt_etrs89_longd").get_attribute("value")
+        result = driver.find_element(By.ID,"txt_etrs89_longd").get_attribute("value")
+        while longd == result:
+            result = driver.find_element(By.ID,"txt_etrs89_longd").get_attribute("value")
+            time.sleep(1)
+            print("Esperando segudno")
     
     longd = driver.find_element(By.ID,"txt_etrs89_longd").get_attribute("value")
     latgd = driver.find_element(By.ID,"txt_etrs89_latgd").get_attribute("value")
@@ -175,6 +192,7 @@ def transformData(utmN,utmE,driver):
 
 ##Gets the longd and latgd using the API
 def callAPI(longd : str,latgd : str):
+    print("Empezado")
     url = "https://reverse-geocoder.p.rapidapi.com/v1/getAddressByLocation?lat="+latgd+"&lon="+longd+"&accept-language=en"
     headers = {
     "X-RapidAPI-Key": "6c2aa156f8mshecf0f16b67af41ep119458jsnff7511e9d279",
@@ -194,4 +212,4 @@ report = {
         "Reparados": {"count": 0, "detalles": []},
     }
 ##Execute
-readCSVtoJson(1)
+
