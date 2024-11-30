@@ -19,7 +19,7 @@ def buildMonument(driver, id, denominacion: str, provincia, municipio, utmeste, 
         report["Total"]["count"] += 1
         m = Monumento()
         p = buildProvince(provincia)
-        l = buildCity(municipio, p)
+        m.en_localidad = buildCity(municipio, p)
         m.nombre = denominacion
         m.descripcion = clasificacion
         getCategoria(denominacion, categoria, m)
@@ -212,4 +212,4 @@ report = {
         "Reparados": {"count": 0, "detalles": []},
     }
 ##Execute
-
+readCSVtoJson(1)
