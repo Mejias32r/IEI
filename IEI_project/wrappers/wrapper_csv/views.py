@@ -1,3 +1,5 @@
+import time
+from django.http import JsonResponse
 from django.shortcuts import render
 import csv
 from selenium import webdriver
@@ -12,16 +14,48 @@ from IEI_project.settings import FUENTES_DE_DATOS_DIR
 from main.models import Monumento, Provincia, Localidad
 
 
-def buildMonument(id, denominacion: str, provincia, municipio, utmeste, utmnorte, codclasificacion, clasificacion, codcategoria, categoria):
-    m = Monumento()
-    p = Provincia( nombre = provincia )
-    l = Localidad( nombre = municipio, en_provincia = p )
-    m.nombre = denominacion
-    m.descripcion = clasificacion
-    getCategoria(denominacion, categoria, m)
+def buildMonument(driver, id, denominacion: str, provincia, municipio, utmeste, utmnorte, codclasificacion, clasificacion, codcategoria, categoria):
+    try:
+        report["Total"]["count"] += 1
+        m = Monumento()
+        p = buildProvince(provincia)
+        l = buildCity(municipio, p)
+        m.nombre = denominacion
+        m.descripcion = clasificacion
+        getCategoria(denominacion, categoria, m)
+        #TODO: Descomentar cuando transformData() funcione correctamente
+        #m.longitud, m.latitud = transformData(utmnorte, utmeste, driver)
+        #m.codigo_postal, m.direccion = getPostalandAddress(m.longitud, m.latitud)
+        #m.save()
+        report["Registrados"]["count"] += 1
+        #print(m.tipo) #Test
+    except ValueError as e:
+        report["Descartados"]["count"] += 1
+        report["Descartados"]["razones"].append(e)
+    except Exception as e:
+        report["Descartados"]["count"] += 1
+        report["Descartados"]["razones"].append(f"Error inesperado: {str(e)}.")
+        print(e)
 
-    ##TODO: sacar dirección, código postal, longitud y latitud. También hace falta guardar correctamente las clases.
-    #print(m.nombre, l.nombre, l.en_provincia) #testing
+def buildProvince(provincia):
+    if provincia is None or provincia == "":
+        raise ValueError("Falta la provincia")
+    p = Provincia( nombre = provincia )
+    if not Provincia.objects.filter(nombre = provincia).exists():
+        p.save()
+    else:
+        p = Provincia.objects.get(nombre = provincia)
+    return p
+
+def buildCity(municipio, p):
+    if municipio is None or municipio == "":
+        raise ValueError("Falta la localidad")
+    l = Localidad(nombre=municipio, en_provincia=p)
+    if not Localidad.objects.filter(nombre=municipio).exists():
+        l.save()
+    else:
+        l = Localidad.objects.get(nombre=municipio)
+    return l
 
 def getCategoria(denominacion, categoria, m):
     if (categoria == "Zona arqueológica"):
@@ -49,18 +83,31 @@ def getCategoria(denominacion, categoria, m):
     else:
         m.tipo = "Otros"
 
+def getPostalandAddress(longd, latgd):
+    #"-0.37966""39.47391" for valencia. Tests
+    data = callAPI(latgd=latgd,longd=longd)
+    address_data = data.get("address", {})
+    road = address_data.get("road", "")
+    house_number = address_data.get("house_number", "")
+    city = address_data.get("city", "")
+    postcode = address_data.get("postcode", "")
+    province = address_data.get("province", "")
+    country = address_data.get("country", "")
+
+    # Crear la dirección completa
+    address = f"{road} {house_number}, {postcode}, {city}, {province}, {country}".strip()
+
+    return postcode, address
 
 def readCSVtoJson(request):
-
-    ##driver = startPage()
+    driver = "placeholder"#startPage()
     with open(FUENTES_DE_DATOS_DIR + '/monumentos_comunidad_valenciana.csv', encoding='utf-8') as file:
         reader = csv.reader(file, delimiter=";")
         next(reader)
         for row in reader:
             id, denominacion, provincia, municipio, utmeste, utmnorte, codclasificacion, clasificacion, codcategoria, categoria = row
-            buildMonument(id, denominacion, provincia, municipio, utmeste, utmnorte, codclasificacion, clasificacion, codcategoria, categoria)
-
-readCSVtoJson(1)
+            buildMonument(driver, id, denominacion, provincia, municipio, utmeste, utmnorte, codclasificacion, clasificacion, codcategoria, categoria)
+    return JsonResponse(report)
 
 
 
@@ -88,7 +135,9 @@ def startPage():
     layout.click()
  
     layout2 = driver.find_element(By.XPATH, "//*[@id='typecoords']/div[2]/div")
-    layout2.click()
+    #layout2.click()
+    actions = ActionChains(driver)
+    actions.move_to_element(layout2).click().perform()
 
     layout3 = driver.find_element(By.XPATH, "//*[@id='modotrab']/div[1]/div")
     #layout3.click()
@@ -125,7 +174,7 @@ def transformData(utmN,utmE,driver):
 
 
 ##Gets the longd and latgd using the API
-def callAPI(longd,latgd):
+def callAPI(longd : str,latgd : str):
     url = "https://reverse-geocoder.p.rapidapi.com/v1/getAddressByLocation?lat="+latgd+"&lon="+longd+"&accept-language=en"
     headers = {
     "X-RapidAPI-Key": "6c2aa156f8mshecf0f16b67af41ep119458jsnff7511e9d279",
@@ -136,10 +185,13 @@ def callAPI(longd,latgd):
     print(json)
 
     return json
-    
 
-
-
-
- 
-
+##Define structure of report
+report = {
+        "Total": {"count": 0},
+        "Registrados": {"count": 0},
+        "Descartados": {"count": 0, "razones": []},
+        "Reparados": {"count": 0, "detalles": []},
+    }
+##Execute
+readCSVtoJson(1)
