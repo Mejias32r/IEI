@@ -169,11 +169,17 @@ def transformData(utmN,utmE,driver):
     actions.move_to_element(calculate).click().perform()
     #calculate.click()
 
+    count = 0
     result = driver.find_element(By.ID,"results_manual").get_attribute("style")
     if result != "display: block;":
         while result != "display: block;":
             result = driver.find_element(By.ID,"results_manual").get_attribute("style")
             time.sleep(1)
+            if count>=20:
+                actions.move_to_element(calculate).click().perform()
+                count = 0
+                print("volvi a clickar")            
+            count +=1
             print("Esperando primero")
     else:
         longd = driver.find_element(By.ID,"txt_etrs89_longd").get_attribute("value")
@@ -181,6 +187,11 @@ def transformData(utmN,utmE,driver):
         while longd == result:
             result = driver.find_element(By.ID,"txt_etrs89_longd").get_attribute("value")
             time.sleep(1)
+            if count>=20:
+                actions.move_to_element(calculate).click().perform()
+                print("volvi a clickar")
+                count = 0
+            count +=1
             print("Esperando segudno")
     
     longd = driver.find_element(By.ID,"txt_etrs89_longd").get_attribute("value")
