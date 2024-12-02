@@ -18,28 +18,30 @@ def buildMonument(driver, id, denominacion: str, provincia, municipio, utmeste, 
     try:
         report["Total"]["count"] += 1
         m = Monumento()
-        p = buildProvince(provincia)
-        m.en_localidad = buildCity(municipio, p)
         m.nombre = denominacion
         m.descripcion = clasificacion
         getCategoria(denominacion, categoria, m)
         #TODO: Descomentar cuando transformData() funcione correctamente
-        m.longitud, m.latitud = transformData(utmnorte, utmeste, driver)
+        m.longitud, m.latitud = getCoords(utmnorte, utmeste, driver)
         m.codigo_postal, m.direccion = getPostalandAddress(m.longitud, m.latitud)
+        p = buildProvince(provincia)
+        m.en_localidad = buildCity(municipio, p)
         m.save()
         report["Registrados"]["count"] += 1
         print(m.tipo) #Test
     except ValueError as e:
         report["Descartados"]["count"] += 1
         report["Descartados"]["razones"].append(e)
+        print(e)
     except Exception as e:
         report["Descartados"]["count"] += 1
         report["Descartados"]["razones"].append(f"Error inesperado: {str(e)}.")
         print(e)
 
-def buildProvince(provincia):
+def buildProvince(provincia: str):
     if provincia is None or provincia == "":
         raise ValueError("Falta la provincia")
+    provincia = provincia.capitalize()
     p = Provincia( nombre = provincia )
     if not Provincia.objects.filter(nombre = provincia).exists():
         p.save()
@@ -47,9 +49,10 @@ def buildProvince(provincia):
         p = Provincia.objects.get(nombre = provincia)
     return p
 
-def buildCity(municipio, p):
+def buildCity(municipio: str, p):
     if municipio is None or municipio == "":
         raise ValueError("Falta la localidad")
+    municipio = municipio.capitalize()
     l = Localidad(nombre=municipio, en_provincia=p)
     if not Localidad.objects.filter(nombre=municipio).exists():
         l.save()
@@ -83,7 +86,16 @@ def getCategoria(denominacion, categoria, m):
     else:
         m.tipo = "Otros"
 
+def getCoords(utmnorte, utmeste, driver):
+    if (utmnorte is None or utmnorte == "" or
+        utmeste  is None or utmeste  == ""):
+        raise ValueError("Error. UTMNorte y/o UTMEste vacios")
+    return transformData(utmnorte, utmeste, driver)
+
 def getPostalandAddress(longd, latgd):
+    if (longd is None or longd == "" or
+        latgd is None or latgd == ""):
+        raise ValueError("Error. Longitud y/o Latitud vacias")
     #"-0.37966""39.47391" for valencia. Tests
     data = callAPI(latgd=latgd,longd=longd)
     address_data = data.get("address", {})
@@ -101,7 +113,7 @@ def getPostalandAddress(longd, latgd):
 
 def readCSVtoJson(request):
     driver = startPage()
-    with open(FUENTES_DE_DATOS_DIR + '/monumentos_comunidad_valenciana.csv', encoding='utf-8') as file:
+    with open(FUENTES_DE_DATOS_DIR + '/monumentos_comunidad_valenciana_entrega.csv', encoding='utf-8') as file:
         reader = csv.reader(file, delimiter=";")
         next(reader)
         for row in reader:
