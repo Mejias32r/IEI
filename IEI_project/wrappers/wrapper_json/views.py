@@ -24,8 +24,16 @@ def determinar_tipo(nombre):
     nombre_lower = nombre.lower()
     for tipo_enum, palabras_clave in TIPOS_MONUMENTOS.items():
         if any(palabra in nombre_lower for palabra in palabras_clave):
-            return tipo_enum  # Devuelve el valor del enum
-    return Tipo.OTROS  # Devuelve "OT" si no encuentra coincidencias
+            return tipo_enum 
+    return Tipo.OTROS 
+
+def manejar_claves_duplicadas(pares):
+    "Devuelve un diccionario con solo la primera aparición de cada clave."
+    resultado = {}
+    for clave, valor in pares:
+        if clave not in resultado:
+            resultado[clave] = valor
+    return resultado
 
 # Función principal que procesa el archivo JSON
 def conversor_json(request):
@@ -33,7 +41,7 @@ def conversor_json(request):
 
     try:
         with open(json_path, "r", encoding="utf-8") as file:
-            monumentos = json.load(file)
+            monumentos = json.load(file, object_pairs_hook=manejar_claves_duplicadas)
     except FileNotFoundError:
         return render(request, "error.html", {"error": "Archivo JSON no encontrado."})
     except json.JSONDecodeError:
@@ -79,7 +87,7 @@ def conversor_json(request):
 
             # Validar código postal
             codigo_postal = item.get("postalCode")
-            if codigo_postal is not '':    
+            if codigo_postal != '':    
                 if len(codigo_postal) == 4:
                     report["Reparados"]["count"] += 1
                     report["Reparados"]["detalles"].append("Codigo postal reparado añadiendo un 0 inicial.")
@@ -111,15 +119,15 @@ def conversor_json(request):
 
             valor_float_lon = float(longitud)
             parte_entera_lon = int(valor_float_lon)
-            if direccion is None:
+            if direccion == '':
                 report["Descartados"]["count"] += 1
                 report["Descartados"]["razones"].append("Falta la direccion")
                 continue
-            elif descripcion is '':
+            elif descripcion == '':
                 report["Descartados"]["count"] += 1
                 report["Descartados"]["razones"].append("Falta la descripcion")
                 continue
-            elif latitud is '':
+            elif latitud == '':
                 report["Descartados"]["count"] += 1
                 report["Descartados"]["razones"].append("Falta la latitud")
                 continue
@@ -127,7 +135,7 @@ def conversor_json(request):
                 report["Descartados"]["count"] += 1
                 report["Descartados"]["razones"].append("Latitud fuera de rango")
                 continue
-            elif longitud is '' or None:
+            elif longitud == '' or None:
                 report["Descartados"]["count"] += 1
                 report["Descartados"]["razones"].append("Falta la longitud")
                 continue
