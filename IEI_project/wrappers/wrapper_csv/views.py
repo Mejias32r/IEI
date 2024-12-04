@@ -29,7 +29,7 @@ def buildMonument(driver, id, denominacion: str, provincia, municipio, utmeste, 
     try:
         report["Total"]["count"] += 1
         m = Monumento()
-        m.nombre = denominacion
+        m.nombre = getName(denominacion)
         m.descripcion = clasificacion
         getCategoria(denominacion, categoria, m)
         m.longitud, m.latitud = getCoords(utmnorte, utmeste, driver)
@@ -73,6 +73,11 @@ def buildCity(municipio: str, p):
         l = Localidad.objects.get(nombre=municipio)
     return l
 
+def getName(denominacion):
+    if Monumento.objects.filter(nombre = denominacion).exists():
+        raise ValueError("Monumento repetido")
+    return denominacion
+
 def getCategoria(denominacion, categoria, m):
     if (categoria == "Zona arqueológica"):
         m.tipo = "Yacimiento arqueológico"
@@ -103,6 +108,10 @@ def getCoords(utmnorte, utmeste, driver):
     if (utmnorte is None or utmnorte == "" or
         utmeste  is None or utmeste  == ""):
         raise ValueError("UTMNorte y/o UTMEste vacios")
+    if (utmnorte < 500000  or utmnorte > 900000):
+        raise ValueError("Valor de UTMNorte fuera de rango")
+    if (utmeste  < 3900000 or utmeste  > 4700000):
+        raise ValueError("Valor de UTMeste fuera de rango")
     return transformData(utmnorte, utmeste, driver)
 
 def getPostalandAddress(longd, latgd):
