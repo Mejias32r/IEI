@@ -123,10 +123,6 @@ def conversor_json(request):
                 report["Descartados"]["count"] += 1
                 report["Descartados"]["razones"].append("Falta la direccion")
                 continue
-            elif descripcion == '':
-                report["Descartados"]["count"] += 1
-                report["Descartados"]["razones"].append("Falta la descripcion")
-                continue
             elif latitud == '':
                 report["Descartados"]["count"] += 1
                 report["Descartados"]["razones"].append("Falta la latitud")
