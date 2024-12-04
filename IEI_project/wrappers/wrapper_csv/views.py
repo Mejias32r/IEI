@@ -51,7 +51,6 @@ def buildMonument(driver, id, denominacion: str, provincia, municipio, utmeste, 
 def buildProvince(provincia: str):
     if provincia is None or provincia == "":
         raise ValueError("Falta la provincia")
-    provincia = provincia.capitalize()
     p = Provincia( nombre = provincia )
     if not Provincia.objects.filter(nombre = provincia).exists():
         p.save()
