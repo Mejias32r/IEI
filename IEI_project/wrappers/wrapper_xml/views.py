@@ -22,15 +22,21 @@ def transform_xml_to_json(request):
         "Descartados": {"count": 0, "razones": []},
         "Reparados": {"count": 0, "detalles": []},
     }
+    
+    counter = 0
 
     # Iterate through the monuments
     for monument in root.findall('monumento'):
         try:
-            report["Total"]["count"] += 1
+            counter += 1
+            report["Total"]["count"] += counter
             
             # Map the name
             name = monument.find('nombre')
             nameConstructor = name.text if name is not None else ""
+            if Monumento.objects.filter(nombre=nameConstructor).exists():
+                report["Descartados"]["count"] += 1
+                report["Descartados"]["razones"].append("Monumento repetido.")     
 
             # Map the type of monument
             monument_type = monument.find('tipoMonumento')
