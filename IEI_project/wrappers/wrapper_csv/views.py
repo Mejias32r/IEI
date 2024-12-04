@@ -31,7 +31,6 @@ def buildMonument(driver, id, denominacion: str, provincia, municipio, utmeste, 
         m.nombre = denominacion
         m.descripcion = clasificacion
         getCategoria(denominacion, categoria, m)
-        #TODO: Descomentar cuando transformData() funcione correctamente
         m.longitud, m.latitud = getCoords(utmnorte, utmeste, driver)
         m.codigo_postal, m.direccion = getPostalandAddress(m.longitud, m.latitud)
         p = buildProvince(provincia)
