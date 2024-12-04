@@ -33,7 +33,7 @@ def buildMonument(driver, id, denominacion: str, provincia, municipio, utmeste, 
         m.descripcion = clasificacion
         getCategoria(denominacion, categoria, m)
         m.longitud, m.latitud = getCoords(utmnorte, utmeste, driver)
-        m.codigo_postal, m.direccion, provincia = getPostalandAddress(m.longitud, m.latitud)
+        m.codigo_postal, m.direccion, provinciaAPI = getPostalandAddress(m.longitud, m.latitud)
         p = buildProvince(provincia)
         m.en_localidad = buildCity(municipio, p)
         m.save()
@@ -54,6 +54,11 @@ def buildMonument(driver, id, denominacion: str, provincia, municipio, utmeste, 
 def buildProvince(provincia: str):
     if provincia is None or provincia == "":
         raise ValueError("Falta la provincia")
+    provincia.capitalize()
+    if (provincia != "Castellón" and 
+        provincia != "Alicante" and 
+        provincia != "Valencia"):
+        raise ValueError("Provincia '" + provincia + "' no reconocida")
     p = Provincia( nombre = provincia )
     if not Provincia.objects.filter(nombre = provincia).exists():
         p.save()
