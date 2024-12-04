@@ -4,8 +4,8 @@ from django.http import JsonResponse
 from main.models import Monumento
 from main.models import Localidad
 from main.models import Provincia
+from main.models import Tipo
 from IEI_project.settings import FUENTES_DE_DATOS_DIR
-from .models import Provincia, Localidad, Monumento, Tipo
 import json
 
 # Diccionario que mapea los nombres de monumentos a los valores del enum `Tipo`
@@ -40,10 +40,10 @@ def conversor_json(request):
         return render(request, "error.html", {"error": "Error al decodificar el archivo JSON."})
 
     report = {
-        "Total": {"count": 0},  # Contador total de monumentos procesados
-        "Registrados": {"count": 0},  # Monumentos registrados correctamente
-        "Descartados": {"count": 0, "razones": []},  # Monumentos descartados y sus razones
-        "Reparados": {"count": 0, "detalles": []},  # Monumentos con datos corregidos
+        "Total": {"count": 0},  
+        "Registrados": {"count": 0},  
+        "Descartados": {"count": 0, "razones": []},  
+        "Reparados": {"count": 0, "detalles": []},  
     }
 
     for item in monumentos:
@@ -57,7 +57,7 @@ def conversor_json(request):
                 continue
             elif (not item.get("municipality")):
                 report["Descartados"]["count"] += 1
-                report["Descartados"]["razones"].append("Falta el minicipio")
+                report["Descartados"]["razones"].append("Falta el municipio")
                 continue
             elif(not item.get("documentName")):
                 report["Descartados"]["count"] += 1
@@ -79,46 +79,61 @@ def conversor_json(request):
 
             # Validar código postal
             codigo_postal = item.get("postalCode")
-            if codigo_postal is not None:    
+            if codigo_postal is not '':    
                 if len(codigo_postal) == 4:
                     report["Reparados"]["count"] += 1
-                    report["Reparados"]["detalles"].append("Código postal reparado añadiendo un 0 inicial.")
+                    report["Reparados"]["detalles"].append("Codigo postal reparado añadiendo un 0 inicial.")
                     codigo_postal = "0" + codigo_postal
                 elif len(codigo_postal) != 5 or not codigo_postal.isdigit():
                     report["Descartados"]["count"] += 1
-                    report["Descartados"]["razones"].append("Código postal invalido")
+                    report["Descartados"]["razones"].append("Codigo postal invalido")
                     continue
 
                 first_two_digits = int(codigo_postal[:2])
                 if first_two_digits > 52:
                     report["Descartados"]["count"] += 1
-                    report["Descartados"]["razones"].append("Código postal fuera de rango.")
+                    report["Descartados"]["razones"].append("Codigo postal fuera de rango.")
                     continue
             else:
                 report["Descartados"]["count"] += 1
-                report["Descartados"]["razones"].append("Falta el código postal.")
+                report["Descartados"]["razones"].append("Falta el codigo postal.")
                 continue    
 
             # Crear o actualizar monumento
             direccion = item.get("address")
             descripcion = item.get("documentDescription")
             latitud = item.get("latwgs84")
+
+            valor_float_lat = float(latitud)
+            parte_entera_lat = int(valor_float_lat)
+            
             longitud = item.get("lonwgs84")
+
+            valor_float_lon = float(longitud)
+            parte_entera_lon = int(valor_float_lon)
             if direccion is None:
                 report["Descartados"]["count"] += 1
                 report["Descartados"]["razones"].append("Falta la direccion")
                 continue
-            elif descripcion is None:
+            elif descripcion is '':
                 report["Descartados"]["count"] += 1
-                report["Descartados"]["razones"].append("Falta la direccion")
+                report["Descartados"]["razones"].append("Falta la descripcion")
                 continue
-            elif latitud is None:
+            elif latitud is '':
                 report["Descartados"]["count"] += 1
-                report["Descartados"]["razones"].append("Falta la direccion")
+                report["Descartados"]["razones"].append("Falta la latitud")
                 continue
-            elif longitud is None:
+            elif not(-180 <= parte_entera_lat <= 180):
                 report["Descartados"]["count"] += 1
-                report["Descartados"]["razones"].append("Falta la direccion")
+                report["Descartados"]["razones"].append("Latitud fuera de rango")
+                continue
+            elif longitud is '' or None:
+                report["Descartados"]["count"] += 1
+                report["Descartados"]["razones"].append("Falta la longitud")
+                continue
+            elif not (-180 <= parte_entera_lon <= 180):
+                report["Descartados"]["count"] += 1
+                report["Descartados"]["razones"].append("Longitud fuera de rango")
                 continue
 
             Monumento.objects.update_or_create(
