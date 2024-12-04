@@ -40,8 +40,11 @@ def buildMonument(driver, id, denominacion: str, provincia, municipio, utmeste, 
         report["Registrados"]["count"] += 1
     except ValueError as e:
         report["Descartados"]["count"] += 1
-        report["Descartados"]["razones"].append(str(e))
-        print(e)
+        errorMsg : str = (  "Error procesando la fila: " + str(report["Total"]["count"]) + 
+                            " con el monumento: '" + denominacion + 
+                            "' por la razón: " + str(e) )
+        report["Descartados"]["razones"].append(errorMsg)
+        print(errorMsg)
     except Exception as e:
         report["Descartados"]["count"] += 1
         report["Descartados"]["razones"].append(f"Error inesperado: {str(e)}.")
@@ -99,13 +102,13 @@ def getCategoria(denominacion, categoria, m):
 def getCoords(utmnorte, utmeste, driver):
     if (utmnorte is None or utmnorte == "" or
         utmeste  is None or utmeste  == ""):
-        raise ValueError("Error. UTMNorte y/o UTMEste vacios")
+        raise ValueError("UTMNorte y/o UTMEste vacios")
     return transformData(utmnorte, utmeste, driver)
 
 def getPostalandAddress(longd, latgd):
     if (longd is None or longd == "" or
         latgd is None or latgd == ""):
-        raise ValueError("Error. Longitud y/o Latitud vacias")
+        raise ValueError("Longitud y/o Latitud vacias")
     #"-0.37966""39.47391" for valencia. Tests
     data = callAPI(latgd=latgd,longd=longd)
     address_data = data.get("address", {})
@@ -121,7 +124,7 @@ def getPostalandAddress(longd, latgd):
 
     if (postcode is None or postcode == "" or
         address  is None or address  == ""):
-        raise ValueError("Error. Código postal o dirección vacios")
+        raise ValueError("Código postal o dirección vacios")
     return postcode, address, province
 
 @transaction.atomic
