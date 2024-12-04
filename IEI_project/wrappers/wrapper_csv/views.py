@@ -37,7 +37,6 @@ def buildMonument(driver, id, denominacion: str, provincia, municipio, utmeste, 
         m.en_localidad = buildCity(municipio, p)
         m.save()
         report["Registrados"]["count"] += 1
-        print(m.tipo) #Test
     except ValueError as e:
         report["Descartados"]["count"] += 1
         report["Descartados"]["razones"].append(str(e))
