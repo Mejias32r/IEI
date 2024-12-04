@@ -33,7 +33,7 @@ def buildMonument(driver, id, denominacion: str, provincia, municipio, utmeste, 
         m.descripcion = clasificacion
         getCategoria(denominacion, categoria, m)
         m.longitud, m.latitud = getCoords(utmnorte, utmeste, driver)
-        m.codigo_postal, m.direccion = getPostalandAddress(m.longitud, m.latitud)
+        m.codigo_postal, m.direccion, provincia = getPostalandAddress(m.longitud, m.latitud)
         p = buildProvince(provincia)
         m.en_localidad = buildCity(municipio, p)
         m.save()
@@ -123,7 +123,7 @@ def getPostalandAddress(longd, latgd):
     if (postcode is None or postcode == "" or
         address  is None or address  == ""):
         raise ValueError("Error. Código postal o dirección vacios")
-    return postcode, address
+    return postcode, address, province
 
 @transaction.atomic
 def readCSVtoJson(request):
