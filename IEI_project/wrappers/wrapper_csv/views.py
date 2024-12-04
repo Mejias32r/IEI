@@ -24,6 +24,7 @@ report = {
         "Reparados": {"count": 0, "detalles": []},
     }
 
+@transaction.atomic
 def buildMonument(driver, id, denominacion: str, provincia, municipio, utmeste, utmnorte, codclasificacion, clasificacion, codcategoria, categoria):
     try:
         report["Total"]["count"] += 1
@@ -47,6 +48,7 @@ def buildMonument(driver, id, denominacion: str, provincia, municipio, utmeste, 
         report["Descartados"]["razones"].append(f"Error inesperado: {str(e)}.")
         print(e)
 
+@transaction.atomic
 def buildProvince(provincia: str):
     if provincia is None or provincia == "":
         raise ValueError("Falta la provincia")
@@ -58,6 +60,7 @@ def buildProvince(provincia: str):
         p = Provincia.objects.get(nombre = provincia)
     return p
 
+@transaction.atomic
 def buildCity(municipio: str, p):
     if municipio is None or municipio == "":
         raise ValueError("Falta la localidad")
@@ -187,7 +190,7 @@ def transformData(utmN,utmE,driver):
     input2.clear()
     input2.send_keys(utmE)
 
-    time.sleep(5)
+    time.sleep(1)
 
     calculate = driver.find_element(By.ID,"trd_calc")
     actions = ActionChains(driver)

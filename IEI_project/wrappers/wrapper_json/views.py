@@ -87,7 +87,7 @@ def conversor_json(request):
 
             # Validar código postal
             codigo_postal = item.get("postalCode")
-            if codigo_postal is not '':    
+            if codigo_postal != '':    
                 if len(codigo_postal) == 4:
                     report["Reparados"]["count"] += 1
                     report["Reparados"]["detalles"].append("Codigo postal reparado añadiendo un 0 inicial.")
@@ -119,15 +119,15 @@ def conversor_json(request):
 
             valor_float_lon = float(longitud)
             parte_entera_lon = int(valor_float_lon)
-            if direccion is '':
+            if direccion == '':
                 report["Descartados"]["count"] += 1
                 report["Descartados"]["razones"].append("Falta la direccion")
                 continue
-            elif descripcion is '':
+            elif descripcion == '':
                 report["Descartados"]["count"] += 1
                 report["Descartados"]["razones"].append("Falta la descripcion")
                 continue
-            elif latitud is '':
+            elif latitud == '':
                 report["Descartados"]["count"] += 1
                 report["Descartados"]["razones"].append("Falta la latitud")
                 continue
@@ -135,7 +135,7 @@ def conversor_json(request):
                 report["Descartados"]["count"] += 1
                 report["Descartados"]["razones"].append("Latitud fuera de rango")
                 continue
-            elif longitud is '' or None:
+            elif longitud == '' or None:
                 report["Descartados"]["count"] += 1
                 report["Descartados"]["razones"].append("Falta la longitud")
                 continue
