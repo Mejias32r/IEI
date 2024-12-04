@@ -2,6 +2,7 @@ import time
 from django.http import JsonResponse
 from django.shortcuts import render
 import csv
+from django.db import transaction
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.edge.options import Options
@@ -14,6 +15,15 @@ from IEI_project.settings import FUENTES_DE_DATOS_DIR
 from main.models import Monumento, Provincia, Localidad
 
 
+
+##Define structure of report
+report = {
+        "Total": {"count": 0},
+        "Registrados": {"count": 0},
+        "Descartados": {"count": 0, "razones": []},
+        "Reparados": {"count": 0, "detalles": []},
+    }
+
 def buildMonument(driver, id, denominacion: str, provincia, municipio, utmeste, utmnorte, codclasificacion, clasificacion, codcategoria, categoria):
     try:
         report["Total"]["count"] += 1
@@ -21,7 +31,6 @@ def buildMonument(driver, id, denominacion: str, provincia, municipio, utmeste, 
         m.nombre = denominacion
         m.descripcion = clasificacion
         getCategoria(denominacion, categoria, m)
-        #TODO: Descomentar cuando transformData() funcione correctamente
         m.longitud, m.latitud = getCoords(utmnorte, utmeste, driver)
         m.codigo_postal, m.direccion = getPostalandAddress(m.longitud, m.latitud)
         p = buildProvince(provincia)
@@ -31,7 +40,7 @@ def buildMonument(driver, id, denominacion: str, provincia, municipio, utmeste, 
         print(m.tipo) #Test
     except ValueError as e:
         report["Descartados"]["count"] += 1
-        report["Descartados"]["razones"].append(e)
+        report["Descartados"]["razones"].append(str(e))
         print(e)
     except Exception as e:
         report["Descartados"]["count"] += 1
@@ -109,8 +118,12 @@ def getPostalandAddress(longd, latgd):
     # Crear la dirección completa
     address = f"{road} {house_number}, {postcode}, {city}, {province}, {country}".strip()
 
+    if (postcode is None or postcode == "" or
+        address  is None or address  == ""):
+        raise ValueError("Error. Código postal o dirección vacios")
     return postcode, address
 
+@transaction.atomic
 def readCSVtoJson(request):
     driver = startPage()
     with open(FUENTES_DE_DATOS_DIR + '/monumentos_comunidad_valenciana_entrega.csv', encoding='utf-8') as file:
@@ -227,12 +240,5 @@ def callAPI(longd : str,latgd : str):
 
     return json
 
-##Define structure of report
-report = {
-        "Total": {"count": 0},
-        "Registrados": {"count": 0},
-        "Descartados": {"count": 0, "razones": []},
-        "Reparados": {"count": 0, "detalles": []},
-    }
 ##Execute
 #readCSVtoJson(1)
