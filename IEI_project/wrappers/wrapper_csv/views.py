@@ -113,9 +113,9 @@ def getCoords(utmnorte, utmeste, driver):
     if (utmnorte is None or utmnorte == "" or
         utmeste  is None or utmeste  == ""):
         raise ValueError("UTMNorte y/o UTMEste vacios")
-    if (utmnorte < 500000  or utmnorte > 900000):
+    if (int(utmnorte) < 500000  or int(utmnorte) > 900000):
         raise ValueError("Valor de UTMNorte fuera de rango")
-    if (utmeste  < 3900000 or utmeste  > 4700000):
+    if (int(utmeste)  < 3900000 or int(utmeste)  > 4700000):
         raise ValueError("Valor de UTMeste fuera de rango")
     return transformData(utmnorte, utmeste, driver)
 
