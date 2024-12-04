@@ -36,7 +36,7 @@ def transform_xml_to_json(request):
             nameConstructor = name.text if name is not None else ""
             if Monumento.objects.filter(nombre=nameConstructor).exists():
                 report["Descartados"]["count"] += 1
-                report["Descartados"]["razones"].append("Monumento repetido.")     
+                report["Descartados"]["razones"].append("Monumento número" + str(counter) + "con nombre" + str(nameConstructor) + "descartado por razón:" + "Monumento repetido.")     
 
             # Map the type of monument
             monument_type = monument.find('tipoMonumento')
@@ -58,11 +58,11 @@ def transform_xml_to_json(request):
                     monumnentTypeConstructor = "Otros"
                 else:
                     report["Descartados"]["count"] += 1
-                    report["Descartados"]["razones"].append(f"Tipo de monumento no reconocido: {type}.")
+                    report["Descartados"]["razones"].append(f"Monumento número" + str(counter) + "con nombre" + str(nameConstructor) + "descartado por razón:" + "Tipo de monumento no reconocido: {type}.")
                     continue
             else:
                 report["Descartados"]["count"] += 1
-                report["Descartados"]["razones"].append("Falta el tipo de monumento.")
+                report["Descartados"]["razones"].append("Monumento número" + str(counter) + "con nombre" + str(nameConstructor) + "descartado por razón:" + "Falta el tipo de monumento.")
                 continue
 
             # Map the address
@@ -83,11 +83,11 @@ def transform_xml_to_json(request):
                 longitudeConstructor = longitude.text.replace('#', '').strip()
                 if float(longitudeConstructor) > 180 or float(longitudeConstructor) < -180 or float(latitudeConstructor) > 90 or float(latitudeConstructor) < -90:
                     report["Descartados"]["count"] += 1
-                    report["Descartados"]["razones"].append("Coordenadas fuera de rango.")
+                    report["Descartados"]["razones"].append("Monumento número" + str(counter) + "con nombre" + str(nameConstructor) + "descartado por razón:" + "Coordenadas fuera de rango.")
                     continue
             else:
                 report["Descartados"]["count"] += 1
-                report["Descartados"]["razones"].append("Faltan coordenadas.")
+                report["Descartados"]["razones"].append("Monumento número" + str(counter) + "con nombre" + str(nameConstructor) + "descartado por razón:" + "Faltan coordenadas.")
                 continue
 
             # Map the description
@@ -115,7 +115,7 @@ def transform_xml_to_json(request):
                     provinceConstructor = Provincia.objects.get(nombre=province.text)
             else:
                 report["Descartados"]["count"] += 1
-                report["Descartados"]["razones"].append("Falta la provincia.")
+                report["Descartados"]["razones"].append("Monumento número" + str(counter) + "con nombre" + str(nameConstructor) + "descartado por razón:" + "Falta la provincia.")
                 continue
 
             # Map the localidad
@@ -128,7 +128,7 @@ def transform_xml_to_json(request):
                     localidadConstructor = Localidad.objects.get(nombre=localidad.text)
             else:
                 report["Descartados"]["count"] += 1
-                report["Descartados"]["razones"].append("Falta la localidad.")
+                report["Descartados"]["razones"].append("Monumento número" + str(counter) + "con nombre" + str(nameConstructor) + "descartado por razón:" + "Falta la localidad.")
                 continue
             
             # Map the postal code
@@ -138,22 +138,20 @@ def transform_xml_to_json(request):
                     codigoPostalConstructor = codigoPostal.text
                 elif len(codigoPostal.text) == 4:
                     report["Reparados"]["count"] += 1
-                    report["Reparados"]["detalles"].append(
-                        "Código postal reparado añadiendo un 0 inicial."
-                    )
+                    report["Reparados"]["detalles"].append("Monumento número" + str(counter) + "con nombre" + str(nameConstructor) + " modificado de la siguiente manera:" + "Código postal reparado añadiendo un 0 inicial.")
                     codigoPostalConstructor = "0" + codigoPostal.text
                 else:
                     report["Descartados"]["count"] += 1
-                    report["Descartados"]["razones"].append("Código postal inválido.")
+                    report["Descartados"]["razones"].append("Monumento número" + str(counter) + "con nombre" + str(nameConstructor) + "descartado por razón:" + "Código postal inválido.")
                     continue
                 first_two_digits = int(codigoPostalConstructor[:2])
                 if first_two_digits > 52:
                     report["Descartados"]["count"] += 1
-                    report["Descartados"]["razones"].append("Código postal fuera de rango.")
+                    report["Descartados"]["razones"].append("Monumento número" + str(counter) + "con nombre" + str(nameConstructor) + "descartado por razón:" + "Código postal fuera de rango.")
                     continue
             else:
                 report["Descartados"]["count"] += 1
-                report["Descartados"]["razones"].append("Falta el código postal.")
+                report["Descartados"]["razones"].append("Monumento número" + str(counter) + "con nombre" + str(nameConstructor) + "descartado por razón:" + "Falta el código postal.")
                 continue
 
             # Add the monument's data to the result JSON
@@ -171,6 +169,6 @@ def transform_xml_to_json(request):
             report["Registrados"]["count"] += 1
         except Exception as e:
             report["Descartados"]["count"] += 1
-            report["Descartados"]["razones"].append(f"Error inesperado: {str(e)}.")
+            report["Descartados"]["razones"].append("Monumento número" + str(counter) + "con nombre" + str(nameConstructor) + "descartado por razón:" + "Error inesperado: {str(e)}.")
 
     return JsonResponse(report)
