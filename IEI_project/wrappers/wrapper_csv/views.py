@@ -109,6 +109,9 @@ def getPostalandAddress(longd, latgd):
     # Crear la dirección completa
     address = f"{road} {house_number}, {postcode}, {city}, {province}, {country}".strip()
 
+    if (postcode is None or postcode == "" or
+        address  is None or address  == ""):
+        raise ValueError("Error. Código postal o dirección vacios")
     return postcode, address
 
 def readCSVtoJson(request):
