@@ -29,7 +29,7 @@ def determinar_tipo(nombre):
 
 # Función principal que procesa el archivo JSON
 def conversor_json(request):
-    json_path = f"{FUENTES_DE_DATOS_DIR}/monumentos_pais_vasco.json"
+    json_path = f"{FUENTES_DE_DATOS_DIR}/monumentos_pais_vasco_entrega.json"
 
     try:
         with open(json_path, "r", encoding="utf-8") as file:
