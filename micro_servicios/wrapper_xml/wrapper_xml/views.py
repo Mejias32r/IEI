@@ -145,9 +145,16 @@ def extractor_xml(request):
                 province = monument.find('./poblacion/provincia')
                 if province is not None and province.text is not None:
                     provinceConstructor = province.text
-                    report["Registrados"]["Provincias"].append({
-                        "nombre": provinceConstructor
-                    })
+                    if existe_provincia(report, province.text):
+                        report["Descartados"]["Provincias"].append({
+                            "linea": counter,
+                            "nombre": provinceConstructor,
+                            "motivo": "Provincia repetida."
+                        })
+                    else:
+                        report["Registrados"]["Provincias"].append({
+                            "nombre": provinceConstructor
+                        })
                 else:
                     report["Descartados"]["total"] += 1
                     report["Descartados"]["Provincias"].append({
@@ -166,10 +173,17 @@ def extractor_xml(request):
                 localidad = monument.find('./poblacion/localidad')
                 if localidad is not None and localidad.text is not None:
                     localidadName = localidad.text
-                    report["Registrados"]["Localidades"].append({
-                        "nombre": nameConstructor,
-                        "en_provincia": provinceConstructor
-                    })
+                    if existe_localidad(report, localidadName):
+                        report["Descartados"]["Localidades"].append({
+                            "linea": counter,
+                            "nombre": localidadName,
+                            "motivo": "Localidad repetida."
+                        })
+                    else:
+                        report["Registrados"]["Localidades"].append({
+                            "nombre": localidadName,
+                            "en_provincia": provinceConstructor
+                        })
                 else:
                     report["Descartados"]["total"] += 1
                     report["Descartados"]["Localidades"].append({
