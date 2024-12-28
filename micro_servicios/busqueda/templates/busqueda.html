@@ -1,21 +1,101 @@
-{%load static %}
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IEI</title>
-    <!-- Enlace al archivo CSS externo -->
-    <link rel="stylesheet" href="{% static '/style.css' %}">
+    <title>Buscador de Monumentos</title>
+    <link rel="stylesheet" href="../static/style.css">
+    <script src="../static/script.js"></script>
+    
+
 </head>
 <body>
-    <header>
-        <h1>Busqueda de monumentos</h1>
-    </header>
-    <footer>
-        <p>© 2024 Mi Proyecto</p>
-    </footer>
-    <!-- Enlace al archivo JS externo -->
-    <script src="{% static '/script.js' %}"></script>
+    <h1>Buscador de Monumentos de Interés Cultural</h1>
+    <div class="center">
+    <div class="horizontal">
+        <tr>
+            <div class="form-container">
+                <div class="form-group">
+                    <label for="localidad">Localidad:</label>
+                    <input type="text" id="localidad" name="localidad">
+                </div>
+
+                <div class="form-group">
+                    <label for="codigo-postal">C&oacute;digo Postal:</label>
+                    <input type="text" id="codigo-postal" name="codigo-postal">
+                </div>
+
+                <div class="form-group">
+                    <label for="provincia">Provincia:</label>
+                    <input type="text" id="provincia" name="provincia">
+                </div>
+
+                <div class="form-group">
+                    <label for="tipo">Tipo:</label>
+                    <select id="tipo" name="tipo">
+                        <option value="puente">Puente</option>
+                        <option value="castillo">Castillo</option>
+                        <option value="iglesia">Iglesia</option>
+                        <option value="otro">Otro</option>
+                    </select>
+                </div>
+
+                <div class="buttons">
+                    <button type="button" onClick="cancel()" class="cancel">Cancelar</button>
+                    <button type="button" onClick="initFilteredSearch()" class="search">Buscar</button>
+                </div>
+            </div>
+
+            
+            <iframe 
+                src="https://www.google.com/maps/embed/v1/view?key=TU_API_KEY&center=40.416775,-3.703790&zoom=12" 
+                allowfullscreen="" loading="lazy">
+            </iframe>
+            
+        </tr>
+    </div>
+    </div>
+
+    <div class="results">
+        <h3>Resultados de la b&uacute;squeda:</h3>
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Nombre</th>
+                        <th>Tipo</th>
+                        <th>Dirección</th>
+                        <th>Localidad</th>
+                        <th>Cód. Postal</th>
+                        <th>Provincia</th>
+                        <th>Descripción</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Ejemplo de filas -->
+                    <tr>
+                        <td>Puente Romano</td>
+                        <td>Puente</td>
+                        <td>Calle Antigua</td>
+                        <td>Sevilla</td>
+                        <td>41001</td>
+                        <td>Sevilla</td>
+                        <td>Puente histórico de la época romana.</td>
+                    </tr>
+                    <tr>
+                        <td>Castillo de Almodóvar</td>
+                        <td>Castillo</td>
+                        <td>Almodóvar</td>
+                        <td>Córdoba</td>
+                        <td>14720</td>
+                        <td>Córdoba</td>
+                        <td>Castillo medieval en excelente estado de conservación.</td>
+                    </tr>
+                    <!-- Más filas pueden ser cargadas dinámicamente -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
 </body>
 </html>
