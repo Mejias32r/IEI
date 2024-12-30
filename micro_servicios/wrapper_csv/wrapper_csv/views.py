@@ -13,20 +13,34 @@ import requests
 from selenium.webdriver import ActionChains
 from settings import FUENTES_DE_DATOS_DIR
 
-
-
 ##Define structure of report
 report = {
-        "Total": {"count": 0},
-        "Registrados": {"count": 0},
-        "Descartados": {"count": 0, "razones": []},
-        "Reparados": {"count": 0, "detalles": []},
+    "nombre": "Wrapper_CSV",
+    "total": {"count": 0},
+    "Registrados": {
+        "count": 0,
+        "Provincias": [],
+        "Localidades": [],
+        "Monumentos": []
+    },
+    "Descartados": {
+        "total": 0,
+        "Provincias": [],
+        "Localidades": [],
+        "Monumento": []
+    },
+    "Reparados": {
+        "total": 0,
+        "Provincias": [],
+        "Localidades": [],
+        "Monumento": []
     }
+}
 
 @transaction.atomic
 def buildMonument(driver, id, denominacion: str, provincia, municipio, utmeste, utmnorte, codclasificacion, clasificacion, codcategoria, categoria):
     try:
-        report["Total"]["count"] += 1
+        report["total"]["count"] += 1
         m = Monumento()
         m.nombre = denominacion
         m.descripcion = clasificacion
