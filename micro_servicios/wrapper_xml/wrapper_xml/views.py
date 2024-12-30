@@ -243,7 +243,7 @@ def extractor_xml(request):
                 # Add the monument's data to the result JSON
                 report["Registrados"]["Monumentos"].append({
                     "nombre": nameConstructor,
-                    "trip": monumnentTypeConstructor,
+                    "tipo": monumnentTypeConstructor,
                     "dirección": addressConstructor,
                     "codigo_portal": codigoPostalConstructor,
                     "longitud": longitudeConstructor,

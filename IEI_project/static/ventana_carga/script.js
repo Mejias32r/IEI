@@ -47,8 +47,12 @@ btnEnviar.addEventListener('click', function(){
     })
     .then(response => response.json())
     .then(data =>{
-        
+        textArea.textContent = JSON.stringify(data.informe, null, 2);
     })
+    .catch(error => {
+        console.error('Error:', error);
+        textArea.textContent = 'Ocurrió un error al cargar los datos.';
+    });
 })
 
 btnReiniciarBd.addEventListener('click', function(){
