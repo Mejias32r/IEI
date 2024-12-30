@@ -5,9 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Buscador de Monumentos</title>
     <link rel="stylesheet" href="../static/style.css">
-    <script src="../static/script.js"></script>
-    
-
+    <script type="module" src="../static/script.js"></script>
+    <script type="module">
+        import {initFilteredSearch, cancel, buildMap,buildTable} from "../static/script.js"
+        window.initFilteredSearch = initFilteredSearch;
+        window.buildTable = buildTable;
+        window.cancel = cancel;
+        window.buildMap = buildMap;
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/ol@v10.3.1/dist/ol.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ol@v10.3.1/ol.css">   
 </head>
 <body>
     <h1>Buscador de Monumentos de Interés Cultural</h1>
@@ -46,20 +53,17 @@
                 </div>
             </div>
 
-            
-            <iframe 
-                src="https://www.google.com/maps/embed/v1/view?key=TU_API_KEY&center=40.416775,-3.703790&zoom=12" 
-                allowfullscreen="" loading="lazy">
-            </iframe>
-            
+            <div>
+                <div id="map"></div>
+            </div>
         </tr>
     </div>
     </div>
 
     <div class="results">
-        <h3>Resultados de la b&uacute;squeda:</h3>
+        <h3>Resultados de la búsqueda:</h3>
         <div class="table-container">
-            <table>
+            <table id="resultTable">
                 <thead>
                     <tr>
                         <th>Nombre</th>
