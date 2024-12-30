@@ -13,7 +13,7 @@ import requests
 from selenium.webdriver import ActionChains
 from settings import FUENTES_DE_DATOS_DIR
 
-##TODO: Localidades y provincias adaptar por completo. Adaptar custom expection. Crear funcion que guarde los monumentos
+##TODO: Localidades y provincias adaptar por completo. Adaptar custom expection. Comprobar que no hay monumentos duplicados
 
 ##Define structure of report
 report = {
@@ -50,7 +50,16 @@ def buildMonument(driver, id, denominacion: str, provincia, municipio, utmeste, 
         mCodigo_postal, mDireccion, provinciaAPI = getPostalandAddress(mLongitud, mLatitud)
         p = buildProvince(provincia)
         mEn_localidad = buildCity(municipio, p)
-        m.save()
+        report["Registrados"]["Monumentos"].append({
+                    "nombre": mNombre,
+                    "tipo": mCategoria,
+                    "dirección": mDireccion,
+                    "codigo_portal": mCodigo_postal,
+                    "longitud": mLongitud,
+                    "latitud": mLatitud,
+                    "descripción": mDescripcion,
+                    "en_localidad": mEn_localidad
+                })
         report["Registrados"]["count"] += 1
     except ValueError as e:
         report["Descartados"]["total"] += 1
