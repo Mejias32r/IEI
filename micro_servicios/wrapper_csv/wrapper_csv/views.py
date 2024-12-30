@@ -13,6 +13,8 @@ import requests
 from selenium.webdriver import ActionChains
 from settings import FUENTES_DE_DATOS_DIR
 
+##TODO: Localidades y provincias adaptar por completo. Adaptar custom expection. Crear funcion que guarde los monumentos
+
 ##Define structure of report
 report = {
     "nombre": "Wrapper_CSV",
@@ -40,23 +42,25 @@ report = {
 @transaction.atomic
 def buildMonument(driver, id, denominacion: str, provincia, municipio, utmeste, utmnorte, codclasificacion, clasificacion, codcategoria, categoria):
     try:
-        report["total"]["count"] += 1
-        m = Monumento()
-        m.nombre = denominacion
-        m.descripcion = clasificacion
-        getCategoria(denominacion, categoria, m)
-        m.longitud, m.latitud = getCoords(utmnorte, utmeste, driver)
-        m.codigo_postal, m.direccion, provincia = getPostalandAddress(m.longitud, m.latitud)
+        report["Total"]["count"] += 1
+        mNombre = getName(denominacion)
+        mDescripcion = clasificacion
+        mCategoria = getCategoria(denominacion, categoria)
+        mLongitud, mLatitud = getCoords(utmnorte, utmeste, driver)
+        mCodigo_postal, mDireccion, provinciaAPI = getPostalandAddress(mLongitud, mLatitud)
         p = buildProvince(provincia)
-        m.en_localidad = buildCity(municipio, p)
+        mEn_localidad = buildCity(municipio, p)
         m.save()
         report["Registrados"]["count"] += 1
     except ValueError as e:
-        report["Descartados"]["count"] += 1
-        report["Descartados"]["razones"].append(str(e))
-        print(e)
+        report["Descartados"]["total"] += 1
+        errorMsg : str = (  "Error procesando la fila: " + str(report["Total"]["count"]) + 
+                            " con el monumento: '" + denominacion + 
+                            "' por la razón: " + str(e) )
+        report["Descartados"]["razones"].append(errorMsg)
+        print(errorMsg)
     except Exception as e:
-        report["Descartados"]["count"] += 1
+        report["Descartados"]["total"] += 1
         report["Descartados"]["razones"].append(f"Error inesperado: {str(e)}.")
         print(e)
 
@@ -64,7 +68,11 @@ def buildMonument(driver, id, denominacion: str, provincia, municipio, utmeste, 
 def buildProvince(provincia: str):
     if provincia is None or provincia == "":
         raise ValueError("Falta la provincia")
-    provincia = provincia.capitalize()
+    provincia.capitalize()
+    if (provincia != "Castellón" and 
+        provincia != "Alicante" and 
+        provincia != "Valencia"):
+        raise ValueError("Provincia '" + provincia + "' no reconocida")
     p = Provincia( nombre = provincia )
     if not Provincia.objects.filter(nombre = provincia).exists():
         p.save()
@@ -84,42 +92,51 @@ def buildCity(municipio: str, p):
         l = Localidad.objects.get(nombre=municipio)
     return l
 
-def getCategoria(denominacion, categoria, m):
+def getName(denominacion):
+    if Monumento.objects.filter(nombre = denominacion).exists():
+        raise ValueError("Monumento repetido")
+    return denominacion
+
+def getCategoria(denominacion, categoria):
     if (categoria == "Zona arqueológica"):
-        m.tipo = "Yacimiento arqueológico"
+        return "Yacimiento arqueológico"
     elif (categoria == "Fondo de Museo (primera)" or 
           categoria == "Archivo" or 
           categoria == "Jardín Histórico"):
-        m.tipo = "Edificio Singular"
+        return "Edificio Singular"
     elif (categoria == "Monumento"):
         if  ( "Iglesia"     in denominacion or 
               "Ermita"      in denominacion or
               "Catedral"    in denominacion):
-            m.tipo = "Iglesia-Monasterio"
+            return "Iglesia-Monasterio"
         elif( "Monasterio"  in denominacion or
               "Convento"    in denominacion):
-            m.tipo = "Monasterio-Convento"
+            return "Monasterio-Convento"
         elif( "Castillo"    in denominacion or
               "Fortaleza"   in denominacion or
               "Torre"       in denominacion):
-            m.tipo = "Castillo-Fortaleza-Torre"
+            return "Castillo-Fortaleza-Torre"
         elif( denominacion.startswith("Puente") ):
-            m.tipo = "Puente"
+            return "Puente"
         else:
-            m.tipo = "Edificio Singular"
+            return "Edificio Singular"
     else:
-        m.tipo = "Otros"
+        return "Otros"
 
 def getCoords(utmnorte, utmeste, driver):
     if (utmnorte is None or utmnorte == "" or
         utmeste  is None or utmeste  == ""):
-        raise ValueError("Error. UTMNorte y/o UTMEste vacios")
+        raise ValueError("UTMNorte y/o UTMEste vacios")
+    if (int(utmnorte) < 500000  or int(utmnorte) > 900000):
+        raise ValueError("Valor de UTMNorte fuera de rango")
+    if (int(utmeste)  < 3900000 or int(utmeste)  > 4700000):
+        raise ValueError("Valor de UTMeste fuera de rango")
     return transformData(utmnorte, utmeste, driver)
 
 def getPostalandAddress(longd, latgd):
     if (longd is None or longd == "" or
         latgd is None or latgd == ""):
-        raise ValueError("Error. Longitud y/o Latitud vacias")
+        raise ValueError("Longitud y/o Latitud vacias")
     #"-0.37966""39.47391" for valencia. Tests
     data = callAPI(latgd=latgd,longd=longd)
     address_data = data.get("address", {})
@@ -135,7 +152,7 @@ def getPostalandAddress(longd, latgd):
 
     if (postcode is None or postcode == "" or
         address  is None or address  == ""):
-        raise ValueError("Error. Código postal o dirección vacios")
+        raise ValueError("Código postal o dirección vacios")
     return postcode, address, province
 
 @transaction.atomic
