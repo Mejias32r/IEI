@@ -11,27 +11,27 @@ def extractor_xml(request):
     if request.method == 'GET':
         print(FUENTES_DE_DATOS_DIR)
         # Parse the XML file
-        tree = ET.parse(FUENTES_DE_DATOS_DIR + '\\monumentos_entrega.xml')
+        tree = ET.parse(FUENTES_DE_DATOS_DIR + '//monumentos_entrega.xml')
         root = tree.getroot()
 
         # Initialize the resulting JSON structure and counters
         report = {
-            "nombre": report["Nombre"],
-            "total": {"count": report["Total"]["count"]},
+            "nombre": "Wrapper_XML",
+            "total": {"count": 0},
             "Registrados": {
-                "coutn": report["Registrados"]["total"],
+                "count": 0,
                 "Provincias": [],
                 "Localidades": [],
                 "Monumentos": []
             },
-            "Desctados": {
-                "total": report["Descartados"]["total"],
+            "Descartados": {
+                "total": 0,
                 "Provincias": [],
                 "Localidades": [],
                 "Monumento": []
             },
             "Reparados": {
-                "total": report["Reparados"]["total"],
+                "total": 0,
                 "Provincias": [],
                 "Localidades": [],
                 "Monumento": []
@@ -254,7 +254,7 @@ def extractor_xml(request):
                 report["Descartados"]["total"] += 1
                 report["Descartados"]["Monumento"].append({
                     "linea": counter,
-                    "nombre": nameConstructor,
+                    "nombre": str(e),
                     "motivo": f"Error inesperado: {str(e)}."
                 })
 
