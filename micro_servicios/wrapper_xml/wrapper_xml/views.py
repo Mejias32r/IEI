@@ -4,6 +4,7 @@ from django.http import JsonResponse
 from .settings import FUENTES_DE_DATOS_DIR
 
 import xml.etree.ElementTree as ET
+import html
 import json
 
 
@@ -45,7 +46,7 @@ def extractor_xml(request):
         for monument in root.findall('monumento'):
             try:
                 counter += 1
-                report["Total"]["count"] += counter
+                report["total"]["count"] += 1
                 
                 # Map the name
                 name = monument.find('nombre')
@@ -132,6 +133,7 @@ def extractor_xml(request):
                 historical_periods = monument.findall('periodoHistorico')
                 if description is not None:
                     descriptionConstructor = description.text.strip()
+                    descriptionConstructor = descriptionConstructor.replace("\u003Cp align=\"justify\"\u003E", "").replace("\u003C/p\u003E", "").replace("\u003Cp\u003E","").replace("\u003Cbr /\u003E","").replace("\n","")
                 else:
                     descriptionConstructor = ""
                     if constructionType is not None:
@@ -140,6 +142,7 @@ def extractor_xml(request):
                             list_historical_periods = ','.join([period.text for period in historical_periods])
                             descriptionConstructor += f" que pertenece a el/los periodos históricos {list_historical_periods}"
                     descriptionConstructor += "."
+                    descriptionConstructor = descriptionConstructor.replace("\u003Cp align=\"justify\"\u003E", "").replace("\u003C/p\u003E", "").replace("\u003Cp\u003E","").replace("\u003Cbr /\u003E","").replace("\n","")
 
                 # Map the province
                 province = monument.find('./poblacion/provincia')
@@ -227,6 +230,7 @@ def extractor_xml(request):
                             "nombre": nameConstructor,
                             "motivo": "Código postal fuera de rango."
                         })
+                        continue
                 else:
                     report["Descartados"]["total"] += 1
                     report["Descartados"]["Monumento"].append({
@@ -258,7 +262,7 @@ def extractor_xml(request):
                     "motivo": f"Error inesperado: {str(e)}."
                 })
 
-            return JsonResponse(report)
+        return JsonResponse(report)
     else:
         return JsonResponse({"error": "Method not allowed."}, status=405)
 
