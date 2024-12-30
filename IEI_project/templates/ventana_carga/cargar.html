@@ -38,11 +38,11 @@
         <div class="container-buttons">
             <button class="enviar btn" id="enviar">Cargar</button>
             <a href ="{% url 'ventana_principal' %}" class="cancelar btn" id="cancelar_carga">Cancelar carga</a>
+            <button class= "cancelar btn" id="reiniciar_db">Reiniciar Base de Datos</button> 
         </div>
-        <div class="container-result-box">
-            <p>Resultados de la carga:</p>
-        </div>
-    </main>
+        <p class = "ajustar-izquierda">Resultados de la carga:</p>
+        <textarea class="container-result-box" id="result_box"></textarea>
+    </main> 
     <footer>
         <p>© 2024 Mi Proyecto</p>
     </footer>

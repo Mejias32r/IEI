@@ -56,6 +56,12 @@ footer{
     margin-bottom: 2rem;
 }
 
+.ajustar-izquierda{
+    display: flex;
+    justify-content: start;
+    width: 100%;
+}
+
 .container-result-box{
     display: flex;
     border: 2px solid #9799a0d5;
