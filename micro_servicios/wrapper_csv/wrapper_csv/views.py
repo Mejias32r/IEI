@@ -13,7 +13,7 @@ import requests
 from selenium.webdriver import ActionChains
 from settings import FUENTES_DE_DATOS_DIR
 
-##TODO: Localidades y provincias adaptar por completo.
+##TODO: Localidades adaptar por completo.
 
 ##Define structure of report
 report = {
@@ -78,6 +78,13 @@ def buildMonument(driver, id, denominacion: str, provincia, municipio, utmeste, 
         report["Descartados"]["razones"].append(f"Error inesperado: {str(e)}.")
         print(e)
 
+def existe_provincia(nombre): ##Código de Cesar
+    # Recorrer la lista de monumentos para buscar el nombre
+    for monumento in report["Registrados"]["Provincias"]:
+        if monumento.get("nombre", "").lower() == nombre.lower():
+            return True
+    return False
+
 @transaction.atomic
 def buildProvince(provincia: str):
     if provincia is None or provincia == "":
@@ -87,12 +94,13 @@ def buildProvince(provincia: str):
         provincia != "Alicante" and 
         provincia != "Valencia"):
         raise ValueError(["Provincias","Provincia '" + provincia + "' no reconocida"])
-    p = Provincia( nombre = provincia )
-    if not Provincia.objects.filter(nombre = provincia).exists():
-        p.save()
-    else:
-        p = Provincia.objects.get(nombre = provincia)
-    return p
+
+    if not existe_provincia(provincia):
+        report["Registrados"]["Provincias"].append({
+                            "nombre": provincia
+                        })
+    
+    return provincia
 
 @transaction.atomic
 def buildCity(municipio: str, p):
