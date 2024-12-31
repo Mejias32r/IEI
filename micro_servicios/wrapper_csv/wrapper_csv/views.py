@@ -13,7 +13,7 @@ import requests
 from selenium.webdriver import ActionChains
 from settings import FUENTES_DE_DATOS_DIR
 
-##TODO: Localidades y provincias adaptar por completo. Comprobar que no hay monumentos duplicados
+##TODO: Localidades y provincias adaptar por completo.
 
 ##Define structure of report
 report = {
@@ -107,8 +107,9 @@ def buildCity(municipio: str, p):
     return l
 
 def getName(denominacion):
-    if Monumento.objects.filter(nombre = denominacion).exists():
-        raise ValueError(["Monumento","Monumento repetido"])
+    for monumento in report["Registrados"]["Monumentos"]:
+        if monumento.get("nombre", "").lower() == denominacion.lower():
+            raise ValueError(["Monumento","Monumento repetido"])
     return denominacion
 
 def getCategoria(denominacion, categoria):
