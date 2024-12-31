@@ -13,8 +13,6 @@ import requests
 from selenium.webdriver import ActionChains
 from settings import FUENTES_DE_DATOS_DIR
 
-##TODO: Localidades adaptar por completo.
-
 ##Define structure of report
 report = {
     "nombre": "Wrapper_CSV",
@@ -102,17 +100,24 @@ def buildProvince(provincia: str):
     
     return provincia
 
+def existe_localidad(nombre): ##Código de Cesar
+    # Recorrer la lista de monumentos para buscar el nombre
+    for monumento in report["Registrados"]["Localidades"]:
+        if monumento.get("nombre", "").lower() == nombre.lower():
+            return True
+    return False
+
 @transaction.atomic
 def buildCity(municipio: str, p):
     if municipio is None or municipio == "":
         raise ValueError(["Localidades","Falta la localidad"])
     municipio = municipio.capitalize()
-    l = Localidad(nombre=municipio, en_provincia=p)
-    if not Localidad.objects.filter(nombre=municipio).exists():
-        l.save()
-    else:
-        l = Localidad.objects.get(nombre=municipio)
-    return l
+    if not existe_localidad(municipio):
+        report["Registrados"]["Localidades"].append({
+            "nombre": municipio,
+            "en_provincia": p
+        })
+    return municipio
 
 def getName(denominacion):
     for monumento in report["Registrados"]["Monumentos"]:
