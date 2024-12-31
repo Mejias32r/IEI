@@ -11,7 +11,7 @@ from selenium.webdriver.support.ui import Select
 from selenium.webdriver.edge.service import Service
 import requests
 from selenium.webdriver import ActionChains
-from settings import FUENTES_DE_DATOS_DIR
+from .settings import FUENTES_DE_DATOS_DIR
 
 ##Define structure of report
 report = {
@@ -73,7 +73,7 @@ def buildMonument(driver, id, denominacion: str, provincia, municipio, utmeste, 
         print(errorMsg)
     except Exception as e:
         report["Descartados"]["total"] += 1
-        report["Descartados"]["razones"].append(f"Error inesperado: {str(e)}.")
+        report["Descartados"]["Monumento"].append("Error inesperado: " + str(e))
         print(e)
 
 def existe_provincia(nombre): ##Código de Cesar
@@ -184,7 +184,7 @@ def getPostalandAddress(longd, latgd):
     return postcode, address, province
 
 @transaction.atomic
-def readCSVtoJson(request):
+def extractor_csv(request):
     driver = startPage()
     with open(FUENTES_DE_DATOS_DIR + '/monumentos_comunidad_valenciana_entrega.csv', encoding='utf-8') as file:
         reader = csv.reader(file, delimiter=";")
@@ -301,4 +301,4 @@ def callAPI(longd : str,latgd : str):
     return json
 
 ##Execute
-#readCSVtoJson(1)
+#extractor_csv(1)
