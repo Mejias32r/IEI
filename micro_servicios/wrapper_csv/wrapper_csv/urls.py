@@ -16,9 +16,9 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
-import views
+from .views import extractor_csv
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('extractor', views.extract_csv, name="extractor")
+    path('extractor', extractor_csv, name="extractor")
 ]

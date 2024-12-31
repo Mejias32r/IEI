@@ -11,101 +11,161 @@ from selenium.webdriver.support.ui import Select
 from selenium.webdriver.edge.service import Service
 import requests
 from selenium.webdriver import ActionChains
-from settings import FUENTES_DE_DATOS_DIR
-
-
+from .settings import FUENTES_DE_DATOS_DIR
 
 ##Define structure of report
 report = {
-        "Total": {"count": 0},
-        "Registrados": {"count": 0},
-        "Descartados": {"count": 0, "razones": []},
-        "Reparados": {"count": 0, "detalles": []},
+    "nombre": "Wrapper_CSV",
+    "total": {"count": 0},
+    "Registrados": {
+        "count": 0,
+        "Provincias": [],
+        "Localidades": [],
+        "Monumentos": []
+    },
+    "Descartados": {
+        "total": 0,
+        "Provincias": [],
+        "Localidades": [],
+        "Monumento": []
+    },
+    "Reparados": {
+        "total": 0,
+        "Provincias": [],
+        "Localidades": [],
+        "Monumento": []
     }
+}
+
+fila = 0
 
 @transaction.atomic
 def buildMonument(driver, id, denominacion: str, provincia, municipio, utmeste, utmnorte, codclasificacion, clasificacion, codcategoria, categoria):
     try:
-        report["Total"]["count"] += 1
-        m = Monumento()
-        m.nombre = denominacion
-        m.descripcion = clasificacion
-        getCategoria(denominacion, categoria, m)
-        m.longitud, m.latitud = getCoords(utmnorte, utmeste, driver)
-        m.codigo_postal, m.direccion, provincia = getPostalandAddress(m.longitud, m.latitud)
+        report["total"]["count"] += 1
+        global fila
+        fila += 1
+        mNombre = getName(denominacion)
+        mDescripcion = clasificacion
+        mCategoria = getCategoria(denominacion, categoria)
+        mLongitud, mLatitud = getCoords(utmnorte, utmeste, driver)
+        mCodigo_postal, mDireccion, provinciaAPI = getPostalandAddress(mLongitud, mLatitud)
         p = buildProvince(provincia)
-        m.en_localidad = buildCity(municipio, p)
-        m.save()
+        mEn_localidad = buildCity(municipio, p)
+        report["Registrados"]["Monumentos"].append({
+                    "nombre": mNombre,
+                    "tipo": mCategoria,
+                    "dirección": mDireccion,
+                    "codigo_portal": mCodigo_postal,
+                    "longitud": mLongitud,
+                    "latitud": mLatitud,
+                    "descripción": mDescripcion,
+                    "en_localidad": mEn_localidad
+                })
         report["Registrados"]["count"] += 1
     except ValueError as e:
-        report["Descartados"]["count"] += 1
-        report["Descartados"]["razones"].append(str(e))
-        print(e)
+        tipo = e[0]
+        mensaje = e[1]
+        report["Descartados"]["total"] += 1
+        errorMsg : str = (  "Error procesando la fila: " + str(fila) + 
+                            " con el monumento: '" + denominacion + 
+                            "' por la razón: " + str(mensaje) )
+        report["Descartados"][tipo].append(errorMsg)
+        print(errorMsg)
     except Exception as e:
-        report["Descartados"]["count"] += 1
-        report["Descartados"]["razones"].append(f"Error inesperado: {str(e)}.")
+        report["Descartados"]["total"] += 1
+        report["Descartados"]["Monumento"].append("Error inesperado procesando la fila " + str(fila) + " : " + str(e))
         print(e)
+
+def existe_provincia(nombre): ##Código de Cesar
+    # Recorrer la lista de monumentos para buscar el nombre
+    for monumento in report["Registrados"]["Provincias"]:
+        if monumento.get("nombre", "").lower() == nombre.lower():
+            return True
+    return False
 
 @transaction.atomic
 def buildProvince(provincia: str):
     if provincia is None or provincia == "":
-        raise ValueError("Falta la provincia")
-    provincia = provincia.capitalize()
-    p = Provincia( nombre = provincia )
-    if not Provincia.objects.filter(nombre = provincia).exists():
-        p.save()
-    else:
-        p = Provincia.objects.get(nombre = provincia)
-    return p
+        raise ValueError(["Provincias","Falta la provincia"])
+    provincia.capitalize()
+    if (provincia != "Castellón" and 
+        provincia != "Alicante" and 
+        provincia != "Valencia"):
+        raise ValueError(["Provincias","Provincia '" + provincia + "' no reconocida"])
+
+    if not existe_provincia(provincia):
+        report["Registrados"]["Provincias"].append({
+                            "nombre": provincia
+                        })
+    
+    return provincia
+
+def existe_localidad(nombre): ##Código de Cesar
+    # Recorrer la lista de monumentos para buscar el nombre
+    for monumento in report["Registrados"]["Localidades"]:
+        if monumento.get("nombre", "").lower() == nombre.lower():
+            return True
+    return False
 
 @transaction.atomic
 def buildCity(municipio: str, p):
     if municipio is None or municipio == "":
-        raise ValueError("Falta la localidad")
+        raise ValueError(["Localidades","Falta la localidad"])
     municipio = municipio.capitalize()
-    l = Localidad(nombre=municipio, en_provincia=p)
-    if not Localidad.objects.filter(nombre=municipio).exists():
-        l.save()
-    else:
-        l = Localidad.objects.get(nombre=municipio)
-    return l
+    if not existe_localidad(municipio):
+        report["Registrados"]["Localidades"].append({
+            "nombre": municipio,
+            "en_provincia": p
+        })
+    return municipio
 
-def getCategoria(denominacion, categoria, m):
+def getName(denominacion):
+    for monumento in report["Registrados"]["Monumentos"]:
+        if monumento.get("nombre", "").lower() == denominacion.lower():
+            raise ValueError(["Monumento","Monumento repetido"])
+    return denominacion
+
+def getCategoria(denominacion, categoria):
     if (categoria == "Zona arqueológica"):
-        m.tipo = "Yacimiento arqueológico"
+        return "Yacimiento arqueológico"
     elif (categoria == "Fondo de Museo (primera)" or 
           categoria == "Archivo" or 
           categoria == "Jardín Histórico"):
-        m.tipo = "Edificio Singular"
+        return "Edificio Singular"
     elif (categoria == "Monumento"):
         if  ( "Iglesia"     in denominacion or 
               "Ermita"      in denominacion or
               "Catedral"    in denominacion):
-            m.tipo = "Iglesia-Monasterio"
+            return "Iglesia-Monasterio"
         elif( "Monasterio"  in denominacion or
               "Convento"    in denominacion):
-            m.tipo = "Monasterio-Convento"
+            return "Monasterio-Convento"
         elif( "Castillo"    in denominacion or
               "Fortaleza"   in denominacion or
               "Torre"       in denominacion):
-            m.tipo = "Castillo-Fortaleza-Torre"
+            return "Castillo-Fortaleza-Torre"
         elif( denominacion.startswith("Puente") ):
-            m.tipo = "Puente"
+            return "Puente"
         else:
-            m.tipo = "Edificio Singular"
+            return "Edificio Singular"
     else:
-        m.tipo = "Otros"
+        return "Otros"
 
 def getCoords(utmnorte, utmeste, driver):
     if (utmnorte is None or utmnorte == "" or
         utmeste  is None or utmeste  == ""):
-        raise ValueError("Error. UTMNorte y/o UTMEste vacios")
+        raise ValueError(["Monumento","UTMNorte y/o UTMEste vacios"])
+    if (int(utmnorte) < 500000  or int(utmnorte) > 900000):
+        raise ValueError(["Monumento","Valor de UTMNorte fuera de rango"])
+    if (int(utmeste)  < 3900000 or int(utmeste)  > 4700000):
+        raise ValueError(["Monumento","Valor de UTMeste fuera de rango"])
     return transformData(utmnorte, utmeste, driver)
 
 def getPostalandAddress(longd, latgd):
     if (longd is None or longd == "" or
         latgd is None or latgd == ""):
-        raise ValueError("Error. Longitud y/o Latitud vacias")
+        raise ValueError(["Monumento","Longitud y/o Latitud vacias"])
     #"-0.37966""39.47391" for valencia. Tests
     data = callAPI(latgd=latgd,longd=longd)
     address_data = data.get("address", {})
@@ -121,11 +181,11 @@ def getPostalandAddress(longd, latgd):
 
     if (postcode is None or postcode == "" or
         address  is None or address  == ""):
-        raise ValueError("Error. Código postal o dirección vacios")
+        raise ValueError(["Monumento","Código postal o dirección vacios"])
     return postcode, address, province
 
 @transaction.atomic
-def readCSVtoJson(request):
+def extractor_csv(request):
     driver = startPage()
     with open(FUENTES_DE_DATOS_DIR + '/monumentos_comunidad_valenciana_entrega.csv', encoding='utf-8') as file:
         reader = csv.reader(file, delimiter=";")
@@ -242,4 +302,4 @@ def callAPI(longd : str,latgd : str):
     return json
 
 ##Execute
-#readCSVtoJson(1)
+#extractor_csv(1)
