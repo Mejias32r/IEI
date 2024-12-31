@@ -42,7 +42,8 @@ fila = 0
 @transaction.atomic
 def buildMonument(driver, id, denominacion: str, provincia, municipio, utmeste, utmnorte, codclasificacion, clasificacion, codcategoria, categoria):
     try:
-        report["Total"]["count"] += 1
+        report["total"]["count"] += 1
+        global fila
         fila += 1
         mNombre = getName(denominacion)
         mDescripcion = clasificacion
@@ -73,7 +74,7 @@ def buildMonument(driver, id, denominacion: str, provincia, municipio, utmeste, 
         print(errorMsg)
     except Exception as e:
         report["Descartados"]["total"] += 1
-        report["Descartados"]["Monumento"].append("Error inesperado: " + str(e))
+        report["Descartados"]["Monumento"].append("Error inesperado procesando la fila " + str(fila) + " : " + str(e))
         print(e)
 
 def existe_provincia(nombre): ##Código de Cesar
