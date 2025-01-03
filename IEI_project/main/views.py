@@ -123,3 +123,29 @@ def procesar_monumentos(monumentos_data):
 def reset_ids(tabla):
     with connection.cursor() as cursor:
         cursor.execute(f"DELETE FROM sqlite_sequence WHERE name='{tabla}';")
+
+def get_monumentos(request):
+    if request.method == 'GET':
+        response = [{
+
+        }]
+        monumentos = Monumento.objects.all()
+        if monumentos.count() == 0:
+            return JsonResponse({"status": "error", "message": "No hay datos en la base de datos"}, status=404)
+        else:
+            for monumento in monumentos:
+                response.append({
+                    "table":{
+                        "name": monumento.nombre,
+                        "type": monumento.tipo,
+                        "addres": monumento.direccion,
+                        "locality": monumento.en_localidad.nombre,
+                        "postalCode": monumento.codigo_postal,
+                        "provincie": monumento.en_localidad.en_provincia.nombre,
+                        "description": monumento.descripcion
+                    },
+                    "coordinates":[monumento.longitud, monumento.latitud],
+                })
+        return JsonResponse(response,safe = False ,status=200, json_dumps_params={'ensure_ascii': False})
+    else:
+        return JsonResponse({"status": "error", "message": "Método no permitido. Usa GET"}, status=405)

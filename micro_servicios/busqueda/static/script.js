@@ -4,14 +4,57 @@ export async function initFilteredSearch(){
     let cp = document.getElementById("codigo-postal").value
     let provincia = document.getElementById("provincia").value
     let tipo = document.getElementById("tipo").value
-    var list = [[-0.8656800,38.6373000],[-0.4814900,38.3451700]]
-    buildMap(list)
-    buildTable()
+    let json = await filteredSearch(localidad, cp, provincia, tipo)
+    let coordList = []
+    let monumentList = []
+    json.forEach(element =>{
+        coordList.push(element.coordinates)
+        monumentList.push(element.table)
+    })
+    buildMap(coordList)
+    buildTable(monumentList)
 }
 
-export function buildTable(){
-    console.log("se habría contruido la tabla")
+export async function buildTable(jsonList){
+    const table = document.getElementById("resultTable").querySelector("tbody");
+
+    table.innerHTML = ""
+
+    jsonList.forEach(item => {
+      const row = document.createElement("tr");
+
+      const nameShell = document.createElement("td");
+      nameShell.textContent = item.name;
+      row.appendChild(nameShell);
+
+      const typeShell = document.createElement("td");
+      typeShell.textContent = item.type;
+      row.appendChild(typeShell);
+
+      const ageShell = document.createElement("td");
+      ageShell.textContent = item.address;
+      row.appendChild(ageShell);
+
+      const cityShell = document.createElement("td");
+      cityShell.textContent = item.localty;
+      row.appendChild(cityShell);
+
+      const postalCodeShell = document.createElement("td");
+      postalCodeShell.textContent = item.postalCode;
+      row.appendChild(postalCodeShell);
+
+      const provinceShell = document.createElement("td");
+      provinceShell.textContent = item.province;
+      row.appendChild(provinceShell);
+
+      const descriptionShell = document.createElement("td");
+      descriptionShell.textContent = item.description;
+      row.appendChild(descriptionShell);
+
+      table.appendChild(row);
+    });
 }
+
 
 export function cancel(){
     document.getElementById("localidad").value = ""
@@ -35,7 +78,7 @@ const map = new ol.Map({
 });
 
 
-export function buildMap(coordList){
+export async function buildMap(coordList){
     const vectorSource = new ol.source.Vector();
 
     coordList.forEach(element => {
@@ -58,6 +101,55 @@ export function buildMap(coordList){
     map.addLayer(vectorLayer);
 
 }   
+
+async function filteredSearch(localidad,cp,provincia,tipo){
+    let url = "https://localhost:8085/filteredSearch"
+    const params = {
+        localty: localidad,
+        postalCode: cp,
+        province: provincia,
+        type: tipo
+    };
+
+    const queryString = new URLSearchParams(params).toString();
+    const completedUrl = `${url}?${queryString}`;
+    /*
+    fetch(completedUrl)
+        .then(response => {
+            if(!response.ok){
+                throw new Error('Error en la solicitud');
+            }
+            console.log(response.json())
+            let json = response.json()
+        })
+    */
+    let arrayJson =
+    [{
+        table : {
+            name :"Puente Romano" ,
+            type:"Puente",
+            address:"Calle Antigua",
+            localty:"Sevilla",
+            postalCode:"41001",
+            province:"Sevilla",
+            description: "Puente histórico de la época romana 2222222."
+        },
+        coordinates: [-0.8656800,38.6373000]
+    },{
+        table : {
+            name :"Puente Romano" ,
+            type:"Puente",
+            address:"Calle Antigua",
+            localty:"Sevilla",
+            postalCode:"41001",
+            province:"Sevilla",
+            description: "Puente histórico de la época romana 2222222."
+        },
+        coordinates: [-0.4814900,38.3451700]
+    }]
+    
+    return arrayJson
+}
 
 
 
