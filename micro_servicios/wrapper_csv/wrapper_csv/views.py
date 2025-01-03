@@ -64,8 +64,8 @@ def buildMonument(driver, id, denominacion: str, provincia, municipio, utmeste, 
                 })
         report["Registrados"]["count"] += 1
     except ValueError as e:
-        tipo = e[0]
-        mensaje = e[1]
+        arguments = e.args[0]
+        tipo, mensaje = arguments
         report["Descartados"]["total"] += 1
         errorMsg : str = (  "Error procesando la fila: " + str(fila) + 
                             " con el monumento: '" + denominacion + 
