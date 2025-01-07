@@ -75,8 +75,7 @@ def existe_provincia(report, nombre):
 
 # Función principal que procesa el archivo JSON
 def extract_json(request):
-    json_path = os.path.join(FUENTES_DE_DATOS_DIR, 'monumentos_pais_vasco_entrega.json')
-
+    json_path = f"{FUENTES_DE_DATOS_DIR}/monumentos_pais_vasco_entrega.json"
     try:
         with open(json_path, "r", encoding="utf-8") as file:
             monumentos = json.load(file, object_pairs_hook=manejar_claves_duplicadas)
@@ -116,30 +115,6 @@ def extract_json(request):
 
             counter += 1
             report["total"]["count"] += 1
-
-            #---------------------------------------------
-            if not item.get("territory"):
-                report["Descartados"]["total"] += 1
-                report["Descartados"]["Provincias"].append({
-                    "linea": counter,
-                    "nombre": "",
-                    "motivo": "Falta el nombre."
-                })
-                report["Descartados"]["Monumento"].append({
-                    "linea": counter,
-                    "nombre": nameConstructor,
-                    "motivo": "Falta la provincia."
-                })
-                continue
-            elif (not item.get("municipality")):
-                report["Descartados"]["count"] += 1
-                report["Descartados"]["razones"].append("Falta el municipio")
-                continue
-            elif(not item.get("documentName")):
-                report["Descartados"]["count"] += 1
-                report["Descartados"]["razones"].append("Falta el nombre del monumento")
-                continue
-            #----------------------------------------------
                 
             # Map the name
             nameConstructor = item.get("documentName")
@@ -179,7 +154,7 @@ def extract_json(request):
                 })
                 continue
             provinceConstructor = conversor_dos_idiomas(item.get("territory"))
-            if existe_provincia(report, province.text):
+            if existe_provincia(report, provinceConstructor):
                 report["Descartados"]["Provincias"].append({
                     "linea": counter,
                     "nombre": provinceConstructor,
