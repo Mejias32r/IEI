@@ -1,8 +1,18 @@
 from django.shortcuts import render
 from django.http import JsonResponse
 from django.http import JsonResponse
-from settings import FUENTES_DE_DATOS_DIR
+from .settings import FUENTES_DE_DATOS_DIR
 import json
+
+
+class Tipo():
+    YACIMIENTO_ARQUEOLOGICO = "YA", 'Yacimiento_arqueológico'
+    IGLESIA_ERMITA = "IE", 'Iglesia-Ermita'
+    MONASTERIO_CONVENTO = "MC", 'Monasterio-Convento'
+    CASTILLO_FORTALEZA_TORRE = "CFT", 'Castillo-Fortaleza-Torre'
+    EDIFICIO_SINGULAR = "ES", 'Edificio singular'
+    PUENTE = "PU", 'Puente'
+    OTROS = "OT", 'Otros'
 
 # Diccionario que mapea los nombres de monumentos a los valores del enum `Tipo`
 TIPOS_MONUMENTOS = {
