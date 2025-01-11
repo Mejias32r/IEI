@@ -84,15 +84,47 @@ def existe_provincia(nombre): ##Código de Cesar
             return True
     return False
 
+#Si la provincia esta mal escrita la corrige sino la deja igual
+def provinceMispelled(palabra1, provinciaCorrecta):
+    if len(palabra1) != len(provinciaCorrecta):
+        return palabra1
+    diferencias = sum(1 for a, b in zip(palabra1, provinciaCorrecta) if a != b)
+    if diferencias == 1:
+        return provinciaCorrecta
+    else:
+        return palabra1
+
 @transaction.atomic
 def buildProvince(provincia: str):
     if provincia is None or provincia == "":
         raise ValueError(["Provincias","Falta la provincia"])
-    provincia.capitalize()
+    provincia = provincia.capitalize()
     if (provincia != "Castellón" and 
         provincia != "Alicante" and 
         provincia != "Valencia"):
-        raise ValueError(["Provincias","Provincia '" + provincia + "' no reconocida"])
+        if provinceMispelled(provincia, "Castellón") != provincia: #Si se ha corregido la provincia informar de ello
+            report["Reparados"]["Provincias"].append({
+                "linea" : fila,
+                "nombre": provincia,
+                "motivo": "La provincia esta mal escrita"
+            })
+            provincia = "Castellón"
+        elif provinceMispelled(provincia, "Alicante") != provincia: #Si se ha corregido la provincia informar de ello
+            report["Reparados"]["Provincias"].append({
+                "linea" : fila,
+                "nombre": provincia,
+                "motivo": "La provincia esta mal escrita"
+            })
+            provincia = "Alicante"
+        elif provinceMispelled(provincia, "Valencia") != provincia: #Si se ha corregido la provincia informar de ello
+            report["Reparados"]["Provincias"].append({
+                "linea" : fila,
+                "nombre": provincia,
+                "motivo": "La provincia esta mal escrita"
+            })
+            provincia = "Valencia"
+        else:
+            raise ValueError(["Provincias","Provincia '" + provincia + "' no reconocida"])  
 
     if not existe_provincia(provincia):
         report["Registrados"]["Provincias"].append({
