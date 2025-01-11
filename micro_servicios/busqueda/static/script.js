@@ -1,3 +1,4 @@
+var rootURL="http://localhost:8082/"
 
 export async function initFilteredSearch(){
     let localidad = document.getElementById("localidad").value
@@ -14,6 +15,7 @@ export async function initFilteredSearch(){
     buildMap(coordList)
     buildTable(monumentList)
 }
+
 
 export async function buildTable(jsonList){
     const table = document.getElementById("resultTable").querySelector("tbody");
@@ -32,11 +34,11 @@ export async function buildTable(jsonList){
       row.appendChild(typeShell);
 
       const ageShell = document.createElement("td");
-      ageShell.textContent = item.address;
+      ageShell.textContent = item.addres;
       row.appendChild(ageShell);
 
       const cityShell = document.createElement("td");
-      cityShell.textContent = item.localty;
+      cityShell.textContent = item.locality;
       row.appendChild(cityShell);
 
       const postalCodeShell = document.createElement("td");
@@ -44,7 +46,7 @@ export async function buildTable(jsonList){
       row.appendChild(postalCodeShell);
 
       const provinceShell = document.createElement("td");
-      provinceShell.textContent = item.province;
+      provinceShell.textContent = item.provincie;
       row.appendChild(provinceShell);
 
       const descriptionShell = document.createElement("td");
@@ -103,7 +105,7 @@ export async function buildMap(coordList){
 }   
 
 async function filteredSearch(localidad,cp,provincia,tipo){
-    let url = "https://localhost:8085/filteredSearch"
+    let url = rootURL+"filteredSearch/"
     const params = {
         localty: localidad,
         postalCode: cp,
@@ -151,7 +153,30 @@ async function filteredSearch(localidad,cp,provincia,tipo){
     return arrayJson
 }
 
-
+document.addEventListener('DOMContentLoaded', () =>{
+    let url = rootURL + "busquedaTodo/"
+    console.log("perticion debería enviarse")
+    fetch(url)
+        .then(response => {
+            console.log("recibida respuesta")
+            if(!response.ok){
+                throw new Error('Error en la solicitud');
+            }
+            let json = response.json()
+            return json
+        })
+        .then(json =>{
+            console.log(json)
+            let coordList = []
+            let monumentList = []
+            json.forEach(element =>{
+                coordList.push(element.coordinates)
+                monumentList.push(element.table)
+            })
+            buildMap(coordList)
+            buildTable(monumentList)
+        })
+})
 
 
 

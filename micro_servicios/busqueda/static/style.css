@@ -2,12 +2,13 @@
 
 body {
     font-family: Arial, sans-serif;
-    margin: 20px;
+    margin: 0;
     padding: 0;
     background-color: #f4f4f4;
     display: flex;
     align-items: center;     /* Centrar verticalmente */
     flex-direction: column;
+    justify-content: flex-start;
 }
 
 input {
@@ -121,18 +122,11 @@ h1 {
     background-color: #4CAF50;
     color: white;
 }
-.table-container {
-    margin: 20px auto;
-    max-width: 90%;
-    overflow-x: auto;
-    border-collapse: collapse;
-    border-radius: 8px;
-    background-color: #fff;
-}
 
 th, td {
     padding: 10px;
     text-align: center;
+    width: auto;
 }
 
 th {
@@ -147,12 +141,18 @@ th {
 }
 
 .results {
-    align-items: center;     /* Centrar verticalmente */
-    display: flex;
-    justify-content: center;
-    flex-direction: column;
-    width: 80%;
-    max-width: 800px;
+    max-height: 400px;
+    width: 100%;
     margin-top: 20px;
-    overflow-x: auto;
+    overflow-y: auto;
+}
+
+.table-container {
+    margin: 20px auto;
+    width: 100%;
+    max-height: 500px;
+    border-collapse: collapse;
+    border-radius: 8px;
+    background-color: #ffffff;
+    overflow-y: auto;
 }

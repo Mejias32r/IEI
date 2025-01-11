@@ -17,8 +17,15 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 from .views import cargar_venta_busqueda
+from .views import cargar_filtrado
+from .views import cargar_todos
+
+
+
 
 urlpatterns = [
+    path('busquedaFiltrado/', cargar_filtrado, name='cargar_todos'),
+    path('busquedaTodo/', cargar_todos, name='cargar_todos'),
     path('', cargar_venta_busqueda, name='ventana_busqueda'),
     path('admin/', admin.site.urls),
 ]

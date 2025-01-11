@@ -126,9 +126,10 @@ def reset_ids(tabla):
 
 def get_monumentos(request):
     if request.method == 'GET':
-        response = [{
-
-        }]
+        print("accedido al otro método")
+        response = [ 
+            
+        ]
         monumentos = Monumento.objects.all()
         if monumentos.count() == 0:
             return JsonResponse({"status": "error", "message": "No hay datos en la base de datos"}, status=404)
