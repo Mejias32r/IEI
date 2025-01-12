@@ -37,6 +37,9 @@ def vaciar_almacen_datos(request):
 def cargar_almacen_datos(request):
     if request.method == 'POST':
         method_response = ""
+        report1 = {}
+        report2 = {}
+        report3 = {}
         request_data = json.loads(request.body)
         if 'castilla-Leon' not in request_data or 'comunidad-Valenciana' not in request_data or 'euskadi'not in request_data:
             return JsonResponse({"status": "error", "message": "Falta algun check por pasar"}, status = 400)
@@ -47,14 +50,24 @@ def cargar_almacen_datos(request):
                 response = requests.get(url, headers=headers)   
                 if response.status_code == 200:        
                     datos = response.json()
+                    report1 = datos
                     procesar_datos(datos)
                 else:
                     return JsonResponse({"status": "error", "message": "Error al cargar los datos de Castilla y León"}, status = 500) 
-        
+            if request_data['comunidad-Valenciana'] == True:
+                url = 'http://127.0.0.1:8002/extractor'
+                headers = {'Content-Type': 'application/json'}
+                response = requests.get(url, headers=headers)   
+                if response.status_code == 200:        
+                    datos = response.json()
+                    report2 = datos
+                    procesar_datos(datos)
+                else:
+                    return JsonResponse({"status": "error", "message": "Error al cargar los datos de la Comunidad Valernciana"}, status = 500) 
             return JsonResponse(
                 {"status": "success",
                  "message": "Almacen de datos cargado correctamente",
-                  "informe": datos
+                  "informe": [report1, report2, report3]
                 },
                   status = 200)
     else:
