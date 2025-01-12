@@ -26,9 +26,9 @@ TIPOS_MONUMENTOS = {
 }
 
 NOMBRES_PROVINCIAS = {
-    "Araba-Alava": ["álava", "araba", "alava"],
+    "Araba-Álava": ["álava", "araba", "alava"],
     "Bizkaia-Vizcaya": ["bizkaia", "vizcaya"],
-    "Gipuzkoa-Gipuzcoa": ["gipuzkoa", "gipuzcoa", "gipúzcoa"],
+    "Gipuzkoa-Gipúzcoa": ["gipuzkoa", "gipuzcoa", "gipúzcoa"],
 }
 
 def determinar_tipo(nombre):
@@ -252,15 +252,8 @@ def extract_json(request):
             valor_float_lon = float(longitud)
             parte_entera_lon = int(valor_float_lon)
 
-            if direccion == '':
-                report["Descartados"]["total"] += 1
-                report["Descartados"]["Monumento"].append({
-                        "linea": counter,
-                        "nombre": nameConstructor,
-                        "motivo": "Falta la direccion."
-                    })
-                continue
-            elif latitud == '':
+            
+            if latitud == '':
                 report["Descartados"]["total"] += 1
                 report["Descartados"]["Monumento"].append({
                         "linea": counter,
