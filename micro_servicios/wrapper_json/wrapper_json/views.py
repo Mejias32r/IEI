@@ -16,22 +16,35 @@ class Tipo():
 
 # Diccionario que mapea los nombres de monumentos a los valores del enum `Tipo`
 TIPOS_MONUMENTOS = {
-    Tipo.YACIMIENTO_ARQUEOLOGICO: ["yacimiento"],
-    Tipo.IGLESIA_ERMITA: ["iglesia", "ermita", "catedral", "parroquia", "basílica", "santuario"],
-    Tipo.MONASTERIO_CONVENTO: ["monasterio", "convento"],
-    Tipo.CASTILLO_FORTALEZA_TORRE: ["castillo", "fuerte", "torre", "muralla"],
-    Tipo.EDIFICIO_SINGULAR: ["palacio", "casa", "edificio", "monumento"],
-    Tipo.PUENTE: ["puente", "viaducto"],
+    "Yacimiento Arqueológico": ["yacimiento", "arqueológico"],
+    "Iglesia-Ermita": ["iglesia", "ermita", "catedral", "parroquia", "basílica", "santuario"],
+    "Monasterio-Convento": ["monasterio", "convento"],
+    "Castillo-Fortaleza-Torre": ["castillo", "fuerte", "torre", "muralla"],
+    "Edificio Singular": ["palacio", "casa", "edificio", "monumento"],
+    "Puente": ["puente", "viaducto"],
+    "Otros": ["otro", "desconocido"] 
 }
 
-# Función para determinar el tipo basado en las palabras clave
-def determinar_tipo(nombre):
+NOMBRES_PROVINCIAS = {
+    "Araba-Alava": ["álava", "araba", "alava"],
+    "Bizkaia-Vizcaya": ["bizkaia", "vizcaya"],
+    "Gipuzkoa-Gipuzcoa": ["gipuzkoa", "gipuzcoa", "gipúzcoa"],
+}
 
-    nombre_lower = nombre.lower()
-    for tipo_enum, palabras_clave in TIPOS_MONUMENTOS.items():
+def determinar_tipo(nombre):
+    if not nombre:  # Verifica si `nombre` es None o vacío
+        return False
+    nombre_lower = nombre.lower()  
+    for tipo, palabras_clave in TIPOS_MONUMENTOS.items():
         if any(palabra in nombre_lower for palabra in palabras_clave):
-            return tipo_enum 
-    return Tipo.OTROS 
+            return tipo  
+    return "Otros"  
+
+def conversor_dos_idiomas(provincia):
+    provincia_lower = provincia.lower()
+    for nombres, palabras_clave in NOMBRES_PROVINCIAS.items():
+        if any(palabra in provincia_lower for palabra in palabras_clave):
+            return nombres  
 
 def manejar_claves_duplicadas(pares):
     "Devuelve un diccionario con solo la primera aparición de cada clave."
@@ -41,10 +54,34 @@ def manejar_claves_duplicadas(pares):
             resultado[clave] = valor
     return resultado
 
+def existe_monumento(report, nombre):
+    if not nombre:  # Verifica si `nombre` es None o vacío
+        return False
+    # Recorrer la lista de monumentos para buscar el nombre
+    for monumento in report["Registrados"]["Monumentos"]:
+        if monumento.get("nombre", "").lower() == nombre.lower():
+            return True
+    return False
+
+def existe_localidad(report, nombre):
+    # Recorrer la lista de monumentos para buscar el nombre
+    for monumento in report["Registrados"]["Localidades"]:
+        if monumento.get("nombre", "").lower() == nombre.lower():
+            return True
+    return False
+
+def existe_provincia(report, nombre):
+    if not nombre:  # Verifica si `nombre` es None o vacío
+        return False
+    # Recorrer la lista de monumentos para buscar el nombre
+    for monumento in report["Registrados"]["Provincias"]:
+        if monumento.get("nombre", "").lower() == nombre.lower():
+            return True
+    return False
+
 # Función principal que procesa el archivo JSON
 def extract_json(request):
     json_path = f"{FUENTES_DE_DATOS_DIR}/monumentos_pais_vasco_entrega.json"
-
     try:
         with open(json_path, "r", encoding="utf-8") as file:
             monumentos = json.load(file, object_pairs_hook=manejar_claves_duplicadas)
@@ -53,69 +90,158 @@ def extract_json(request):
     except json.JSONDecodeError:
         return render(request, "error.html", {"error": "Error al decodificar el archivo JSON."})
 
+    
     report = {
-        "Total": {"count": 0},  
-        "Registrados": {"count": 0},  
-        "Descartados": {"count": 0, "razones": []},  
-        "Reparados": {"count": 0, "detalles": []},  
-    }
+            "nombre": "Wrapper_JSON",
+            "total": {"count": 0},
+            "Registrados": {
+                "count": 0,
+                "Provincias": [],
+                "Localidades": [],
+                "Monumentos": []
+            },
+            "Descartados": {
+                "total": 0,
+                "Provincias": [],
+                "Localidades": [],
+                "Monumento": []
+            },
+            "Reparados": {
+                "total": 0,
+                "Provincias": [],
+                "Localidades": [],
+                "Monumento": []
+            }
+        }
+    
+    counter = 0
 
     for item in monumentos:
         try:
 
-            report["Total"]["count"] += 1
-
-            if not item.get("territory"):
-                report["Descartados"]["count"] += 1
-                report["Descartados"]["razones"].append("Falta el territorio")
-                continue
-            elif (not item.get("municipality")):
-                report["Descartados"]["count"] += 1
-                report["Descartados"]["razones"].append("Falta el municipio")
-                continue
-            elif(not item.get("documentName")):
-                report["Descartados"]["count"] += 1
-                report["Descartados"]["razones"].append("Falta el nombre del monumento")
-                continue
+            counter += 1
+            report["total"]["count"] += 1
                 
+            # Map the name
+            if(not item.get("documentName")):
+                report["Descartados"]["total"] += 1
+                report["Descartados"]["Monumento"].append({
+                    "linea": counter,
+                    "nombre": "",
+                    "motivo": "Monumento sin nombre."
+                })
+                continue
+            nameConstructor = item.get("documentName")
 
-            # Crear o buscar provincia
-            provincia, _ = Provincia.objects.get_or_create(nombre=item.get("territory"))
+            if existe_monumento(report, nameConstructor):
+                report["Descartados"]["total"] += 1
+                report["Descartados"]["Monumento"].append({
+                    "linea": counter,
+                    "nombre": nameConstructor,
+                    "motivo": "Monumento repetido."
+                })
+                continue
 
-            # Crear o buscar localidad
-            localidad, _ = Localidad.objects.get_or_create(
-                nombre=item.get("municipality"),
-                en_provincia=provincia
-            )
+            # Mapear el tipo de monumento
+            monumentTypeConstructor = determinar_tipo(nameConstructor)
 
-            # Determinar el tipo de monumento
-            tipo = determinar_tipo(item.get("documentName"))
+            # Mapear la provincia
+            if not item.get("territory"):
+                report["Descartados"]["total"] += 1
+                report["Descartados"]["Provincias"].append({
+                    "linea": counter,
+                    "nombre": "",
+                    "motivo": "Falta el nombre de la provincia."
+                })
+                report["Descartados"]["Monumento"].append({
+                    "linea": counter,
+                    "nombre": nameConstructor,
+                    "motivo": "Falta la provincia."
+                })
+                continue
 
+            provinceConstructor = conversor_dos_idiomas(item.get("territory"))
+            if existe_provincia(report, provinceConstructor):
+                report["Descartados"]["Provincias"].append({
+                    "linea": counter,
+                    "nombre": provinceConstructor,
+                    "motivo": "Provincia repetida."
+                })
+            else:
+                report["Registrados"]["Provincias"].append({
+                    "nombre": provinceConstructor
+                })            
+
+            # Mapear la localidad
+            if not item.get("municipality"):
+                report["Descartados"]["total"] += 1
+                report["Descartados"]["Localidades"].append({
+                    "linea": counter,
+                    "nombre": "",
+                    "motivo": "Falta el nombre de la localidad."
+                })
+                report["Descartados"]["Monumento"].append({
+                    "linea": counter,
+                    "nombre": nameConstructor,
+                    "motivo": "Falta la localidad."
+                })
+                continue
+
+            localidadNameConstructor = item.get("municipality")
+            if existe_localidad(report, localidadNameConstructor):
+                report["Descartados"]["Localidades"].append({
+                    "linea": counter,
+                    "nombre": localidadNameConstructor,
+                    "motivo": "Localidad repetida."
+                })
+            else:
+                report["Registrados"]["Localidades"].append({
+                    "nombre": localidadNameConstructor,
+                    "en_provincia": provinceConstructor
+                })  
+
+            
             # Validar código postal
             codigo_postal = item.get("postalCode")
             if codigo_postal != '':    
                 if len(codigo_postal) == 4:
-                    report["Reparados"]["count"] += 1
-                    report["Reparados"]["detalles"].append("Codigo postal reparado añadiendo un 0 inicial.")
                     codigo_postal = "0" + codigo_postal
+                    report["Reparados"]["total"] += 1
+                    report["Reparados"]["Monumento"].append({
+                        "linea": counter,
+                        "nombre": nameConstructor,
+                        "motivo": "Codigo postal reparado añadiendo un 0 inicial"
+                    })
+                    
                 elif len(codigo_postal) != 5 or not codigo_postal.isdigit():
-                    report["Descartados"]["count"] += 1
-                    report["Descartados"]["razones"].append("Codigo postal invalido")
+                    report["Descartados"]["total"] += 1
+                    report["Descartados"]["Monumento"].append({
+                        "linea": counter,
+                        "nombre": nameConstructor,
+                        "motivo": "Codigo postal invalido."
+                    })
                     continue
 
                 first_two_digits = int(codigo_postal[:2])
                 if first_two_digits > 52:
-                    report["Descartados"]["count"] += 1
-                    report["Descartados"]["razones"].append("Codigo postal fuera de rango.")
+                    report["Descartados"]["total"] += 1
+                    report["Descartados"]["Monumento"].append({
+                        "linea": counter,
+                        "nombre": nameConstructor,
+                        "motivo": "Codigo postal fuera de rango."
+                    })
                     continue
             else:
-                report["Descartados"]["count"] += 1
-                report["Descartados"]["razones"].append("Falta el codigo postal.")
+                report["Descartados"]["total"] += 1
+                report["Descartados"]["Monumento"].append({
+                        "linea": counter,
+                        "nombre": nameConstructor,
+                        "motivo": "Falta codigo postal."
+                    })
                 continue    
 
-            # Crear o actualizar monumento
+            # Crear monumento
             direccion = item.get("address")
-            descripcion = item.get("documentDescription")
             latitud = item.get("latwgs84")
 
             valor_float_lat = float(latitud)
@@ -125,45 +251,68 @@ def extract_json(request):
 
             valor_float_lon = float(longitud)
             parte_entera_lon = int(valor_float_lon)
+
             if direccion == '':
-                report["Descartados"]["count"] += 1
-                report["Descartados"]["razones"].append("Falta la direccion")
+                report["Descartados"]["total"] += 1
+                report["Descartados"]["Monumento"].append({
+                        "linea": counter,
+                        "nombre": nameConstructor,
+                        "motivo": "Falta la direccion."
+                    })
                 continue
             elif latitud == '':
-                report["Descartados"]["count"] += 1
-                report["Descartados"]["razones"].append("Falta la latitud")
+                report["Descartados"]["total"] += 1
+                report["Descartados"]["Monumento"].append({
+                        "linea": counter,
+                        "nombre": nameConstructor,
+                        "motivo": "Falta la latitud."
+                    })
                 continue
             elif not(-180 <= parte_entera_lat <= 180):
-                report["Descartados"]["count"] += 1
-                report["Descartados"]["razones"].append("Latitud fuera de rango")
+                report["Descartados"]["total"] += 1
+                report["Descartados"]["Monumento"].append({
+                        "linea": counter,
+                        "nombre": nameConstructor,
+                        "motivo": "Latitud fuera de rango."
+                    })
                 continue
             elif longitud == '' or None:
-                report["Descartados"]["count"] += 1
-                report["Descartados"]["razones"].append("Falta la longitud")
+                report["Descartados"]["total"] += 1
+                report["Descartados"]["Monumento"].append({
+                        "linea": counter,
+                        "nombre": nameConstructor,
+                        "motivo": "Falta la longitud."
+                    })
                 continue
             elif not (-180 <= parte_entera_lon <= 180):
-                report["Descartados"]["count"] += 1
-                report["Descartados"]["razones"].append("Longitud fuera de rango")
+                report["Descartados"]["total"] += 1
+                report["Descartados"]["Monumento"].append({
+                        "linea": counter,
+                        "nombre": nameConstructor,
+                        "motivo": "Longitud fuera de rango."
+                    })
                 continue
 
-            Monumento.objects.update_or_create(
-                nombre=item.get("documentName"),
-                en_localidad=localidad,
-                defaults={
-                    "tipo": tipo,
-                    "direccion": item.get("address"),
-                    "codigo_postal": codigo_postal,
-                    "latitud": item.get("latwgs84"),
-                    "longitud": item.get("lonwgs84"),
-                    "descripcion": item.get("documentDescription"),
-                }
-            )
+            report["Registrados"]["Monumentos"].append({
+                "nombre": nameConstructor,
+                "tipo": monumentTypeConstructor,
+                "direccion": direccion,
+                "codigo_portal": codigo_postal,
+                "longitud": longitud,
+                "latitud": latitud,
+                "descripción": item.get("documentDescription"),
+                "en_localidad": localidadNameConstructor
+            })
 
             report["Registrados"]["count"] += 1
 
         except Exception as e:
-            report["Descartados"]["count"] += 1
-            report["Descartados"]["razones"].append(f"Error inesperado: {str(e)}.")
+            report["Descartados"]["total"] += 1
+            report["Descartados"]["Monumento"].append({
+                        "linea": counter,
+                        "nombre": nameConstructor,
+                        "motivo": f"Error inesperado: {str(e)}."
+                    })
 
     
     return JsonResponse(report)
