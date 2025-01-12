@@ -1,5 +1,4 @@
-var rootURL="http://localhost:8082/"
-
+var rootURL="http://localhost:8080/"
 export async function initFilteredSearch(){
     let localidad = document.getElementById("localidad").value
     let cp = document.getElementById("codigo-postal").value
@@ -154,22 +153,21 @@ async function filteredSearch(localidad,cp,provincia,tipo){
 }
 
 document.addEventListener('DOMContentLoaded', () =>{
-    let url = rootURL + "busquedaTodo/"
+    let url = rootURL + "main/get-monumentos/"
     console.log("perticion debería enviarse")
     fetch(url)
         .then(response => {
-            console.log("recibida respuesta")
-            if(!response.ok){
-                throw new Error('Error en la solicitud');
+            console.log(response)
+            if (!response.ok) {
+                throw new Error('Error en la solicitud: ' + response.status);
             }
-            let json = response.json()
-            return json
+            return response.json();
         })
-        .then(json =>{
-            console.log(json)
+        .then(data =>{
+            console.log(data)
             let coordList = []
             let monumentList = []
-            json.forEach(element =>{
+            data.forEach(element =>{
                 coordList.push(element.coordinates)
                 monumentList.push(element.table)
             })
