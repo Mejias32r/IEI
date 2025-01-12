@@ -124,7 +124,8 @@ def buildProvince(provincia: str):
             })
             provincia = "Valencia"
         else:
-            raise ValueError(["Provincias","Provincia '" + provincia + "' no reconocida"])  
+            raise ValueError(["Provincias","Provincia '" + provincia + "' no reconocida"])
+        report["Reparados"]["total"] += 1
 
     if not existe_provincia(provincia):
         report["Registrados"]["Provincias"].append({
@@ -199,6 +200,7 @@ def getPostalandAddress(longd, latgd):
         latgd is None or latgd == ""):
         raise ValueError(["Monumento","Longitud y/o Latitud vacias"])
     #"-0.37966""39.47391" for valencia. Tests
+    time.sleep(1) #Evita hacer llamadas demasiado rápido a la API y que nos bloquee
     data = callAPI(latgd=latgd,longd=longd)
     address_data = data.get("address", {})
     road = address_data.get("road", "")
@@ -213,7 +215,7 @@ def getPostalandAddress(longd, latgd):
 
     if (postcode is None or postcode == "" or
         address  is None or address  == ""):
-        raise ValueError(["Monumento","Código postal o dirección vacios"])
+        raise ValueError(["Monumento","Error al encontrar el código postal o la dirección. Seguramente error con la API."])
     return postcode, address, province
 
 @transaction.atomic
