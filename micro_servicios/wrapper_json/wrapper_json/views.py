@@ -26,12 +26,14 @@ TIPOS_MONUMENTOS = {
 }
 
 NOMBRES_PROVINCIAS = {
-    "Araba-Alava": ["Álava", "Araba", "Alava"],
-    "Bizkaia-Vizcaya": ["Bizkaia", "Vizcaya"],
-    "Gipuzkoa-Gipuzcoa": ["Gipuzkoa", "Gipuzcoa", "Gipúzcoa"],
+    "Araba-Alava": ["álava", "araba", "alava"],
+    "Bizkaia-Vizcaya": ["bizkaia", "vizcaya"],
+    "Gipuzkoa-Gipuzcoa": ["gipuzkoa", "gipuzcoa", "gipúzcoa"],
 }
 
 def determinar_tipo(nombre):
+    if not nombre:  # Verifica si `nombre` es None o vacío
+        return False
     nombre_lower = nombre.lower()  
     for tipo, palabras_clave in TIPOS_MONUMENTOS.items():
         if any(palabra in nombre_lower for palabra in palabras_clave):
@@ -53,6 +55,8 @@ def manejar_claves_duplicadas(pares):
     return resultado
 
 def existe_monumento(report, nombre):
+    if not nombre:  # Verifica si `nombre` es None o vacío
+        return False
     # Recorrer la lista de monumentos para buscar el nombre
     for monumento in report["Registrados"]["Monumentos"]:
         if monumento.get("nombre", "").lower() == nombre.lower():
@@ -67,6 +71,8 @@ def existe_localidad(report, nombre):
     return False
 
 def existe_provincia(report, nombre):
+    if not nombre:  # Verifica si `nombre` es None o vacío
+        return False
     # Recorrer la lista de monumentos para buscar el nombre
     for monumento in report["Registrados"]["Provincias"]:
         if monumento.get("nombre", "").lower() == nombre.lower():
@@ -117,7 +123,6 @@ def extract_json(request):
             report["total"]["count"] += 1
                 
             # Map the name
-            nameConstructor = item.get("documentName")
             if(not item.get("documentName")):
                 report["Descartados"]["total"] += 1
                 report["Descartados"]["Monumento"].append({
@@ -126,6 +131,7 @@ def extract_json(request):
                     "motivo": "Monumento sin nombre."
                 })
                 continue
+            nameConstructor = item.get("documentName")
 
             if existe_monumento(report, nameConstructor):
                 report["Descartados"]["total"] += 1
@@ -137,7 +143,7 @@ def extract_json(request):
                 continue
 
             # Mapear el tipo de monumento
-            monumentTypeConstructor = determinar_tipo(item.get("documentName"))
+            monumentTypeConstructor = determinar_tipo(nameConstructor)
 
             # Mapear la provincia
             if not item.get("territory"):
@@ -153,6 +159,7 @@ def extract_json(request):
                     "motivo": "Falta la provincia."
                 })
                 continue
+
             provinceConstructor = conversor_dos_idiomas(item.get("territory"))
             if existe_provincia(report, provinceConstructor):
                 report["Descartados"]["Provincias"].append({
@@ -179,6 +186,7 @@ def extract_json(request):
                     "motivo": "Falta la localidad."
                 })
                 continue
+
             localidadNameConstructor = item.get("municipality")
             if existe_localidad(report, localidadNameConstructor):
                 report["Descartados"]["Localidades"].append({
@@ -288,7 +296,7 @@ def extract_json(request):
             report["Registrados"]["Monumentos"].append({
                 "nombre": nameConstructor,
                 "tipo": monumentTypeConstructor,
-                "dirección": direccion,
+                "direccion": direccion,
                 "codigo_portal": codigo_postal,
                 "longitud": longitud,
                 "latitud": latitud,
