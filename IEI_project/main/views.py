@@ -149,16 +149,55 @@ def reset_ids(tabla):
 
 def get_monumentos(request):
     if request.method == 'GET':
-        print("accedido al otro método")
-        response = [ 
-            
-        ]
+        response = []
         monumentos = Monumento.objects.all()
         if monumentos.count() == 0:
             return JsonResponse({"status": "error", "message": "No hay datos en la base de datos"}, status=404)
         else:
             for monumento in monumentos:
                 response.append({
+                    "table":{
+                        "name": monumento.nombre,
+                        "type": monumento.tipo,
+                        "addres": monumento.direccion,
+                        "locality": monumento.en_localidad.nombre,
+                        "postalCode": monumento.codigo_postal,
+                        "provincie": monumento.en_localidad.en_provincia.nombre,
+                        "description": monumento.descripcion
+                    },
+                    "coordinates":[monumento.longitud, monumento.latitud],
+                })
+        return JsonResponse(response,safe = False ,status=200, json_dumps_params={'ensure_ascii': False})
+    else:
+        return JsonResponse({"status": "error", "message": "Método no permitido. Usa GET"}, status=405)
+    
+def get_monumentos_filtered(request):
+    if request.method == 'GET':
+        provincia = request.GET.get('provincia')
+        localidad = request.GET.get('localidad')
+        tipo = request.GET.get('tipo')
+        codigo_postal = request.GET.get('codigo_postal')
+        response = []
+        monumentos = Monumento.objects.all()
+
+        if provincia:
+            monumentos = monumentos.filter(en_localidad__en_provincia__nombre=provincia)
+            if not monumentos.exists():
+                return JsonResponse({"status": "error", "message": "No se encontraron monumentos en la provincia indicada"}, status=404)
+        if localidad:
+            monumentos = monumentos.filter(en_localidad__nombre=localidad)
+            if not monumentos.exists():
+                return JsonResponse({"status": "error", "message": "No se encontraron monumentos en la localidad indicada"}, status=404)
+        if tipo:
+            monumentos = monumentos.filter(tipo=tipo)
+            if not monumentos.exists():
+                return JsonResponse({"status": "error", "message": "No se encontraron monumentos del tipo indicado"}, status=404)
+        if codigo_postal:
+            monumentos = monumentos.filter(codigo_postal=codigo_postal)
+            if not monumentos.exists():
+                return JsonResponse({"status": "error", "message": "No se encontraron monumentos con el código postal indicado"}, status=404)
+        for monumento in monumentos:
+            response.append({
                     "table":{
                         "name": monumento.nombre,
                         "type": monumento.tipo,

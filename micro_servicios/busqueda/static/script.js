@@ -153,7 +153,7 @@ async function filteredSearch(localidad,cp,provincia,tipo){
 }
 
 document.addEventListener('DOMContentLoaded', () =>{
-    let url = rootURL + "main/get-monumentos/"
+    let url = rootURL + "main/get-monumentos"
     console.log("perticion debería enviarse")
     fetch(url)
         .then(response => {
