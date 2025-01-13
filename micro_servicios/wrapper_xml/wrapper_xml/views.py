@@ -244,7 +244,7 @@ def extractor_xml(request):
                 report["Registrados"]["Monumentos"].append({
                     "nombre": nameConstructor,
                     "tipo": monumnentTypeConstructor,
-                    "dirección": addressConstructor,
+                    "direccion": addressConstructor,
                     "codigo_portal": codigoPostalConstructor,
                     "longitud": longitudeConstructor,
                     "latitud": latitudeConstructor,

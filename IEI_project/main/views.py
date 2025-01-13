@@ -64,6 +64,16 @@ def cargar_almacen_datos(request):
                     procesar_datos(datos)
                 else:
                     return JsonResponse({"status": "error", "message": "Error al cargar los datos de la Comunidad Valernciana"}, status = 500) 
+            if request_data['euskadi'] == True:
+                url = 'http://127.0.0.1:8003/extractor'
+                headers = {'Content-Type': 'application/json'}
+                response = requests.get(url, headers=headers)
+                if response.status_code == 200:
+                    datos = response.json()
+                    report3 = datos
+                    procesar_datos(datos)
+                else:
+                    return JsonResponse({"status": "error", "message": "Error al cargar los datos de Euskadi"}, status = 500)
             return JsonResponse(
                 {"status": "success",
                  "message": "Almacen de datos cargado correctamente",
@@ -106,7 +116,7 @@ def procesar_localidades(localidades_data):
 def procesar_monumentos(monumentos_data):
     for monumento in monumentos_data:
         nombre = monumento.get('nombre')
-        direccion = monumento.get('dirección')
+        direccion = monumento.get('direccion')
         codigo_postal = monumento.get('codigo_portal')
         longitud = monumento.get('longitud')
         latitud = monumento.get('latitud')

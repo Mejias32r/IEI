@@ -55,7 +55,7 @@ def buildMonument(driver, id, denominacion: str, provincia, municipio, utmeste, 
         report["Registrados"]["Monumentos"].append({
                     "nombre": mNombre,
                     "tipo": mCategoria,
-                    "dirección": mDireccion,
+                    "direccion": mDireccion,
                     "codigo_portal": mCodigo_postal,
                     "longitud": mLongitud,
                     "latitud": mLatitud,
@@ -205,13 +205,14 @@ def getPostalandAddress(longd, latgd):
     address_data = data.get("address", {})
     road = address_data.get("road", "")
     house_number = address_data.get("house_number", "")
-    city = address_data.get("city", "")
+    city = address_data.get("town", "")
     postcode = address_data.get("postcode", "")
     province = address_data.get("province", "")
     country = address_data.get("country", "")
 
     # Crear la dirección completa
     address = f"{road} {house_number}, {postcode}, {city}, {province}, {country}".strip()
+    print(address)
 
     if (postcode is None or postcode == "" or
         address  is None or address  == ""):
