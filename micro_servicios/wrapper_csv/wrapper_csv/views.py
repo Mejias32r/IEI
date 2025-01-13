@@ -205,7 +205,7 @@ def getPostalandAddress(longd, latgd):
     address_data = data.get("address", {})
     road = address_data.get("road", "")
     house_number = address_data.get("house_number", "")
-    city = address_data.get("town", "")
+    city = address_data.get("town", "") + " " + address_data.get("city", "") + " " + address_data.get("village", "")
     postcode = address_data.get("postcode", "")
     province = address_data.get("province", "")
     country = address_data.get("country", "")
