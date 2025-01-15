@@ -14,7 +14,7 @@ def ventana_carga(request):
 
 @csrf_exempt
 def vaciar_almacen_datos(request):
-    if request.method == "POST":
+    if request.method == "DELETE":
             try:
                 with transaction.atomic():
                     # Borrar registros en orden inverso a las relaciones
