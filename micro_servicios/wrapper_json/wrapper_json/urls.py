@@ -27,7 +27,7 @@ schema_view = get_schema_view(
     openapi.Info(
         title="API Extractor JSON",
         default_version='v1',
-        description="API to extract data from JSON files",
+        description="API para extraer los datos de los archivos JSON",
     ),
     public=True,
     permission_classes=(permissions.AllowAny,),

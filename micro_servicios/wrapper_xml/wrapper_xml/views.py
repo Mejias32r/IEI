@@ -13,11 +13,11 @@ import json
 # Swagger Schema for extractor_xml
 @swagger_auto_schema(
     method='GET',
-    operation_summary="Extract data from XML",
-    operation_description="Reads a XML file and processes the monument data.",
+    operation_summary="Extrae datos de XML",
+    operation_description="Lee un archivo XML y procesa los datos de los monumentos. Devuelve un JSON con los datos procesados.",
     responses={
         200: openapi.Response(
-            description="XML processed successfully",
+            description="XML procesado correctamente",
             examples={
                 "application/json": {
                     "nombre": "Wrapper_XML",

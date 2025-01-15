@@ -84,11 +84,11 @@ def existe_provincia(report, nombre):
 
 @swagger_auto_schema(
     method='GET',
-    operation_summary="Extract data from JSON",
-    operation_description="Reads a JSON file and processes the monument data.",
+    operation_summary="Extrae datos del JSON",
+    operation_description="Lee un archivo JSON y procesa los datos de los monumentos. Devuelve un JSON con los datos procesados.",
     responses={
         200: openapi.Response(
-            description="JSON processed successfully",
+            description="JSON procesado correctamente",
             examples={
                 "application/json": {
                     "nombre": "Wrapper_JSON",
