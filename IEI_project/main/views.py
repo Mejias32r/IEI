@@ -12,6 +12,15 @@ from drf_yasg import openapi
 from rest_framework.decorators import api_view
 # Create your views here.
 
+@swagger_auto_schema(
+    method='GET',
+    operation_summary="Extrae HTML",
+    operation_description="Extrae HTML para cargarlo.",
+    responses={
+        200:""
+    },
+)
+@api_view(['GET'])
 def ventana_carga(request):
     return render(request, 'ventana_carga/cargar.html')
 
