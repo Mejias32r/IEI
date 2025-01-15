@@ -7,11 +7,46 @@ from django.views.decorators.csrf import csrf_exempt
 import requests
 import json
 import unicodedata
+from drf_yasg.utils import swagger_auto_schema
+from drf_yasg import openapi
+from rest_framework.decorators import api_view
 # Create your views here.
 
 def ventana_carga(request):
     return render(request, 'ventana_carga/cargar.html')
 
+@swagger_auto_schema(
+    method='DELETE',
+    operation_summary="Vacía la base de datos de monumentos.",
+    operation_description="Vacía la base de datos de monumentos con los datos de todos o alguno de los extractores.",
+    responses={
+        200: openapi.Response(
+            description="La base de datos ha reiniciada correctamente.",
+            examples={
+                "application/json": {
+                    "status": "success", "message": "La base de datos ha reiniciada correctamente."
+                }
+            },
+        ),
+        500: openapi.Response(
+            description="Ocurrió un error: (error)",
+            examples={
+                "application/json": {
+                    "status": "error", "message": f"Ocurrió un error: (error))"
+                }
+            },
+        ),
+        405: openapi.Response(
+            description="Método no permitido. Usa DELETE.",
+            examples={
+                "application/json": {
+                    "status": "error", "message": "Método no permitido. Usa DELETE."
+                }
+            },
+        ),
+    },
+)
+@api_view(['DELETE'])
 @csrf_exempt
 def vaciar_almacen_datos(request):
     if request.method == "DELETE":
@@ -33,7 +68,121 @@ def vaciar_almacen_datos(request):
     else:
         return JsonResponse({"status": "error", "message": "Método no permitido. Usa DELETE."}, status = 405)
 
+cargar_almacen_datos_post_body = openapi.Schema(
+    type=openapi.TYPE_OBJECT,
+    properties={
+        'castilla-Leon': openapi.Schema(type=openapi.TYPE_BOOLEAN, description="Checked status for Castilla y León"),
+        'comunidad-Valenciana': openapi.Schema(type=openapi.TYPE_BOOLEAN, description="Checked status for Comunidad Valenciana"),
+        'euskadi': openapi.Schema(type=openapi.TYPE_BOOLEAN, description="Checked status for Euskadi"),
+    },
+    required=['castilla-Leon', 'comunidad-Valenciana', 'euskadi'],  # Optional: adjust based on whether you want them required
+)
 
+@swagger_auto_schema(
+    method='POST',
+    operation_summary="Rellena la base de datos.",
+    operation_description="Rellena la base de datos según las fuentes de datos seleccionadas en el cuerpo de la petición.",
+    responses={
+        200: openapi.Response(
+            description="La base de datos ha reiniciada correctamente.",
+            examples={
+                "application/json": {
+                    "nombre": "Wrapper_XML",
+                    "total": {
+                    "count": 123
+                    },
+                    "Registrados": {
+                    "count": 123,
+                    "Provincias": [
+                        {
+                        "nombre": "Ávila"
+                        },
+                        "...",
+                    ],
+                    "Localidades": [
+                        {
+                        "nombre": "Raso (El)",
+                        "en_provincia": "Ávila"
+                        },
+                        "...",
+                    ],
+                    "Monumentos": [
+                        {
+                        "nombre": "Risco La Zorrera",
+                        "tipo": "Yacimientos arqueológico",
+                        "direccion": "Risco La Zorrera, Candeleda",
+                        "codigo_portal": "05489",
+                        "longitud": "-5.339664",
+                        "latitud": "40.170041",
+                        "descripción": "Descubierto en 1986 consta de dos paneles verticales y un tercero horizontal que cubre los anteriores. Pueden distinguirse tres fases de ejecuci&oacute;n, predominando en la primera los trazos de color rojo, en la segunda destaca una figura de forma humana, y la tercera incluye figuras animales y humanas alargadas.Se ha interpretado como la representaci&oacute;n de un templo o altar. Est&aacute; protegido por una verja.",
+                        "en_localidad": "Raso (El)"
+                        },
+                        "...",
+                    ]
+                    },
+                    "Descartados": {
+                    "total": 123,
+                    "Provincias": [
+                        {
+                        "linea": 6,
+                        "nombre": "Salamanca",
+                        "motivo": "Provincia repetida."
+                        },
+                        "...",
+                    ],
+                    "Localidades": [
+                        {
+                        "linea": 13,
+                        "nombre": "Íscar",
+                        "motivo": "Localidad repetida."
+                        },
+                        "...",
+                    ],
+                    "Monumento": [
+                        {
+                        "linea": 3,
+                        "nombre": "Monasterio de Santa María de Retuerta",
+                        "motivo": "Faltan coordenadas."
+                        },
+                        "...",
+                    ]
+                    },
+                    "Reparados": {
+                    "total": 123,
+                    "Provincias": [],
+                    "Localidades": [],
+                    "Monumento": [
+                        {
+                        "linea": 1,
+                        "nombre": "Risco La Zorrera",
+                        "motivo": "Código postal reparado añadiendo un 0 inicial."
+                        },
+                        "...",
+                    ]
+                    }
+                }
+            },
+        ),
+        500: openapi.Response(
+            description="Error al cargar los datos de (Comunidad Autónoma)",
+            examples={
+                "application/json": {
+                    "status": "error", "message": "Error al cargar los datos de Euskadi"
+                }
+            },
+        ),
+        405: openapi.Response(
+            description="Método no permitido. Usa POST.",
+            examples={
+                "application/json": {
+                    "status": "error", "message": "Método no permitido. Usa POST"
+                }
+            },
+        ),
+    },
+    request_body=cargar_almacen_datos_post_body
+)
+@api_view(['POST'])
 @csrf_exempt
 def cargar_almacen_datos(request):
     if request.method == 'POST':
@@ -148,6 +297,57 @@ def reset_ids(tabla):
     with connection.cursor() as cursor:
         cursor.execute(f"DELETE FROM sqlite_sequence WHERE name='{tabla}';")
 
+
+# Swagger Schema for get_monumentos
+@swagger_auto_schema(
+    method='GET',
+    operation_summary="Retrieve all monuments",
+    operation_description="Fetch all monuments.",
+    responses={
+        200: openapi.Response(
+            description="List of monuments",
+            examples={
+                "application/json": {
+                    "table":{
+                        "name": "nombre",
+                        "type": "tipo",
+                        "addres": "direccion",
+                        "locality": "localidad",
+                        "postalCode": "codigo postal",
+                        "provincie": "provincia",
+                        "description": "descripcion"
+                    },
+                    "coordinates":["longitud", "latitud"],
+                }
+            },
+        ),
+        405: openapi.Response(
+            description="Método no permitido. Usa GET.",
+            examples={
+                "application/json": {
+                    "status": "error", "message": "Método no permitido. Usa GET."
+                }
+            },
+        ),
+        404: openapi.Response(
+            description="No hay datos en la base de datos.",
+            examples={
+                "application/json": {
+                    "status": "error", "message": "No hay datos en la base de datos"
+                }
+            },
+        ),
+        404: openapi.Response(
+            description="No hay datos en la base de datos.",
+            examples={
+                "application/json": {
+                    "status": "error", "message": "No hay datos en la base de datos"
+                }
+            },
+        ),
+    },
+)
+@api_view(['GET'])
 def get_monumentos(request):
     if request.method == 'GET':
         response = []
@@ -171,7 +371,66 @@ def get_monumentos(request):
         return JsonResponse(response,safe = False ,status=200, json_dumps_params={'ensure_ascii': False})
     else:
         return JsonResponse({"status": "error", "message": "Método no permitido. Usa GET"}, status=405)
-    
+
+# Define the query parameters for the GET method
+get_monumentos_filtered_query_params = [
+    openapi.Parameter('tipo', openapi.IN_QUERY, description="Filter by type of monument", type=openapi.TYPE_STRING, required=False),
+    openapi.Parameter('provincia', openapi.IN_QUERY, description="Filter by province", type=openapi.TYPE_STRING, required=False),
+    openapi.Parameter('localidad', openapi.IN_QUERY, description="Filter by locality", type=openapi.TYPE_STRING, required=False),
+    openapi.Parameter('codigo_postal', openapi.IN_QUERY, description="Filter by postal code", type=openapi.TYPE_STRING, required=False),
+]
+
+# Swagger Schema for get_monumentos_filtered
+@swagger_auto_schema(
+    method='GET',
+    operation_summary="Retrieve monuments with optional filters",
+    operation_description="Fetch monuments based on optional filters. If no filters are provided, all monuments will be returned.",
+    responses={
+        200: openapi.Response(
+            description="List of monuments",
+            examples={
+                "application/json": {
+                    "table":{
+                        "name": "nombre",
+                        "type": "tipo",
+                        "addres": "direccion",
+                        "locality": "localidad",
+                        "postalCode": "codigo postal",
+                        "provincie": "provincia",
+                        "description": "descripcion"
+                    },
+                    "coordinates":["longitud", "latitud"],
+                }
+            },
+        ),
+        405: openapi.Response(
+            description="Método no permitido. Usa GET.",
+            examples={
+                "application/json": {
+                    "status": "error", "message": "Método no permitido. Usa GET."
+                }
+            },
+        ),
+        404: openapi.Response(
+            description="No hay datos en la base de datos.",
+            examples={
+                "application/json": {
+                    "status": "error", "message": "No hay datos en la base de datos"
+                }
+            },
+        ),
+        404: openapi.Response(
+            description="No se encontraron monumentos que coincidan con los filtros aplicados.",
+            examples={
+                "application/json": {
+                    "status": "error", "message": "No se encontraron monumentos que coincidan con los filtros aplicados"
+                }
+            },
+        ),
+    },
+    parameters=get_monumentos_filtered_query_params
+)
+@api_view(['GET'])
 def get_monumentos_filtered(request):
     if request.method == 'GET':
         provincia = request.GET.get('provincia')
