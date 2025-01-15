@@ -261,6 +261,7 @@ def getPostalandAddress(longd, latgd):
 def extractor_csv(request):
     if request.method != 'GET':
         return JsonResponse({"error": "Method not allowed."}, status=405)
+    reset_globals()
     driver = startPage()
     with open(FUENTES_DE_DATOS_DIR + '/bienes_inmuebles_interes_cultural.csv', encoding='utf-8') as file:
         reader = csv.reader(file, delimiter=";")
@@ -374,5 +375,32 @@ def callAPI(longd : str,latgd : str):
 
     return json
 
+
+##Resets the global variables
+def reset_globals():
+    global report, fila
+    report = {
+        "nombre": "Wrapper_CSV",
+        "total": {"count": 0},
+        "Registrados": {
+            "count": 0,
+            "Provincias": [],
+            "Localidades": [],
+            "Monumentos": []
+        },
+        "Descartados": {
+            "total": 0,
+            "Provincias": [],
+            "Localidades": [],
+            "Monumento": []
+        },
+        "Reparados": {
+            "total": 0,
+            "Provincias": [],
+            "Localidades": [],
+            "Monumento": []
+        }
+    }
+    fila = 0
 ##Execute
 #extractor_csv(1)
