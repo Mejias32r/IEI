@@ -203,16 +203,12 @@ def extract_json(request):
                     continue
 
                 provinceConstructor = conversor_dos_idiomas(item.get("territory"))
-                if existe_provincia(report, provinceConstructor):
-                    report["Descartados"]["Provincias"].append({
-                        "linea": counter,
-                        "nombre": provinceConstructor,
-                        "motivo": "Provincia repetida."
-                    })
-                else:
+
+                if not existe_provincia(report, provinceConstructor):
                     report["Registrados"]["Provincias"].append({
                         "nombre": provinceConstructor
-                    })            
+                    })   
+                             
 
                 # Mapear la localidad
                 if not item.get("municipality"):
@@ -230,18 +226,11 @@ def extract_json(request):
                     continue
 
                 localidadNameConstructor = item.get("municipality")
-                if existe_localidad(report, localidadNameConstructor):
-                    report["Descartados"]["Localidades"].append({
-                        "linea": counter,
-                        "nombre": localidadNameConstructor,
-                        "motivo": "Localidad repetida."
-                    })
-                else:
+                if  not existe_localidad(report, localidadNameConstructor):
                     report["Registrados"]["Localidades"].append({
                         "nombre": localidadNameConstructor,
                         "en_provincia": provinceConstructor
                     })  
-
                 
                 # Validar código postal
                 codigo_postal = item.get("postalCode")
