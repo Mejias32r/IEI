@@ -12,6 +12,9 @@ from selenium.webdriver.edge.service import Service
 import requests
 from selenium.webdriver import ActionChains
 from .settings import FUENTES_DE_DATOS_DIR
+from drf_yasg.utils import swagger_auto_schema
+from drf_yasg import openapi
+from rest_framework.decorators import api_view
 
 ##Define structure of report
 report = {
@@ -39,7 +42,6 @@ report = {
 
 fila = 0
 
-@transaction.atomic
 def buildMonument(driver, id, denominacion: str, provincia, municipio, utmeste, utmnorte, codclasificacion, clasificacion, codcategoria, categoria):
     try:
         report["total"]["count"] += 1
@@ -94,7 +96,6 @@ def provinceMispelled(palabra1, provinciaCorrecta):
     else:
         return palabra1
 
-@transaction.atomic
 def buildProvince(provincia: str):
     if provincia is None or provincia == "":
         raise ValueError(["Provincias","Falta la provincia"])
@@ -141,7 +142,6 @@ def existe_localidad(nombre): ##Código de Cesar
             return True
     return False
 
-@transaction.atomic
 def buildCity(municipio: str, p):
     if municipio is None or municipio == "":
         raise ValueError(["Localidades","Falta la localidad"])
@@ -219,8 +219,48 @@ def getPostalandAddress(longd, latgd):
         raise ValueError(["Monumento","Error al encontrar el código postal o la dirección. Seguramente error con la API."])
     return postcode, address, province
 
-@transaction.atomic
+# Swagger Schema for extractor_csv
+@swagger_auto_schema(
+    method='GET',
+    operation_summary="Extract data from CSV",
+    operation_description="Reads a CSV file and processes the monument data.",
+    responses={
+        200: openapi.Response(
+            description="CSV processed successfully",
+            examples={
+                "application/json": {
+                    "nombre": "Wrapper_CSV",
+                        "total": {"count": 0},
+                        "Registrados": {
+                            "count": 0,
+                            "Provincias": ["..."],
+                            "Localidades": ["..."],
+                            "Monumentos": ["..."]
+                        },
+                        "Descartados": {
+                            "total": 0,
+                            "Provincias": ["..."],
+                            "Localidades": ["..."],
+                            "Monumento": ["..."]
+                        },
+                        "Reparados": {
+                            "total": 0,
+                            "Provincias": ["..."],
+                            "Localidades": ["..."],
+                            "Monumento": ["..."]
+                        }
+                }
+            },
+        ),
+        500: "Error processing the CSV file",
+        405: "Method Not Allowed",
+    },
+)
+
+@api_view(['GET'])
 def extractor_csv(request):
+    if request.method != 'GET':
+        return JsonResponse({"error": "Method not allowed."}, status=405)
     driver = startPage()
     with open(FUENTES_DE_DATOS_DIR + '/bienes_inmuebles_interes_cultural.csv', encoding='utf-8') as file:
         reader = csv.reader(file, delimiter=";")
@@ -230,8 +270,6 @@ def extractor_csv(request):
             buildMonument(driver, id, denominacion, provincia, municipio, utmeste, utmnorte, codclasificacion, clasificacion, codcategoria, categoria)
             print("una fila procesada  ----------------------------------")
     return JsonResponse(report)
-
-
 
 ##This method initializates the selenium scrapper
 def startPage():

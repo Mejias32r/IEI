@@ -2,12 +2,52 @@ from django.shortcuts import render
 from django.db import transaction
 from django.http import JsonResponse
 from .settings import FUENTES_DE_DATOS_DIR
+from drf_yasg.utils import swagger_auto_schema
+from drf_yasg import openapi
+from rest_framework.decorators import api_view
 
 import xml.etree.ElementTree as ET
 import html
 import json
 
-
+# Swagger Schema for extractor_xml
+@swagger_auto_schema(
+    method='GET',
+    operation_summary="Extract data from XML",
+    operation_description="Reads a XML file and processes the monument data.",
+    responses={
+        200: openapi.Response(
+            description="XML processed successfully",
+            examples={
+                "application/json": {
+                    "nombre": "Wrapper_XML",
+                        "total": {"count": 0},
+                        "Registrados": {
+                            "count": 0,
+                            "Provincias": ["..."],
+                            "Localidades": ["..."],
+                            "Monumentos": ["..."]
+                        },
+                        "Descartados": {
+                            "total": 0,
+                            "Provincias": ["..."],
+                            "Localidades": ["..."],
+                            "Monumento": ["..."]
+                        },
+                        "Reparados": {
+                            "total": 0,
+                            "Provincias": ["..."],
+                            "Localidades": ["..."],
+                            "Monumento": ["..."]
+                        }
+                }
+            },
+        ),
+        500: "Error processing the XML file",
+        405: "Method Not Allowed",
+    },
+)
+@api_view(['GET'])
 def extractor_xml(request):
     if request.method == 'GET':
         print(FUENTES_DE_DATOS_DIR)
