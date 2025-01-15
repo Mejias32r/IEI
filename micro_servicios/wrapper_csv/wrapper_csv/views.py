@@ -222,11 +222,11 @@ def getPostalandAddress(longd, latgd):
 # Swagger Schema for extractor_csv
 @swagger_auto_schema(
     method='GET',
-    operation_summary="Extract data from CSV",
-    operation_description="Reads a CSV file and processes the monument data.",
+    operation_summary="Extraer datos del CSV",
+    operation_description="Lee un archivo CSV y procesa los datos de los monumentos. Devuelve un JSON con los datos procesados.",
     responses={
         200: openapi.Response(
-            description="CSV processed successfully",
+            description="CSV procesado correctamente",
             examples={
                 "application/json": {
                     "nombre": "Wrapper_CSV",
@@ -252,8 +252,8 @@ def getPostalandAddress(longd, latgd):
                 }
             },
         ),
-        500: "Error processing the CSV file",
-        405: "Method Not Allowed",
+        500: "Error procesando el archivo CSV",
+        405: "Metodo no permitido",
     },
 )
 
