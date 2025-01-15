@@ -81,7 +81,7 @@ def existe_provincia(report, nombre):
 
 # Función principal que procesa el archivo JSON
 def extract_json(request):
-    json_path = f"{FUENTES_DE_DATOS_DIR}/monumentos_pais_vasco_entrega.json"
+    json_path = f"{FUENTES_DE_DATOS_DIR}/edificios_final.json"
     try:
         with open(json_path, "r", encoding="utf-8") as file:
             monumentos = json.load(file, object_pairs_hook=manejar_claves_duplicadas)

@@ -222,7 +222,7 @@ def getPostalandAddress(longd, latgd):
 @transaction.atomic
 def extractor_csv(request):
     driver = startPage()
-    with open(FUENTES_DE_DATOS_DIR + '/monumentos_comunidad_valenciana_entrega.csv', encoding='utf-8') as file:
+    with open(FUENTES_DE_DATOS_DIR + '/bienes_inmuebles_interes_cultural.csv', encoding='utf-8') as file:
         reader = csv.reader(file, delimiter=";")
         next(reader)
         for row in reader:

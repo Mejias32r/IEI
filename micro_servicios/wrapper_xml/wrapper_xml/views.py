@@ -64,7 +64,7 @@ def extractor_xml(request):
                 if monument_type is not None and monument_type.text is not None:
                     type = monument_type.text
                     if type == "Yacimientos arqueológicos":
-                        monumnentTypeConstructor = "Archaeological Site"
+                        monumnentTypeConstructor = "Yacimientos arqueológico"
                     elif type == "Iglesias y Ermitas" or type == "Catedrales":
                         monumnentTypeConstructor = "Iglesia-Ermitas"
                     elif type == "Monasterios" or type == "Santuarios" or (type == "Reales Sitios" and ("Monasterio" in nameConstructor or "Convento" in nameConstructor)):

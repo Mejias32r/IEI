@@ -6,6 +6,7 @@ from .models import Provincia, Localidad, Monumento
 from django.views.decorators.csrf import csrf_exempt
 import requests
 import json
+import unicodedata
 # Create your views here.
 
 def ventana_carga(request):
@@ -178,37 +179,82 @@ def get_monumentos_filtered(request):
         tipo = request.GET.get('tipo')
         codigo_postal = request.GET.get('codigo_postal')
         response = []
+
+        # Inicializa el queryset de los monumentos
         monumentos = Monumento.objects.all()
 
         if provincia:
-            monumentos = monumentos.filter(en_localidad__en_provincia__nombre=provincia)
-            if not monumentos.exists():
-                return JsonResponse({"status": "error", "message": "No se encontraron monumentos en la provincia indicada"}, status=404)
+            provincia_normalizada = normalize_text(provincia)
+            monumentos = [
+                m for m in monumentos
+                if provincia_normalizada in split_and_normalize(m.en_localidad.en_provincia.nombre)
+            ]
+            print(f"Filtro provincia normalizado: {provincia_normalizada}")
+
+        # Filtro por localidad
         if localidad:
-            monumentos = monumentos.filter(en_localidad__nombre=localidad)
-            if not monumentos.exists():
-                return JsonResponse({"status": "error", "message": "No se encontraron monumentos en la localidad indicada"}, status=404)
+            localidad_normalizada = normalize_text(localidad)
+            monumentos = [
+                m for m in monumentos
+                if localidad_normalizada in split_and_normalize(m.en_localidad.nombre)
+            ]
+            print(f"Filtro localidad normalizado: {localidad_normalizada}")
+
+        # Filtro por tipo
         if tipo:
-            monumentos = monumentos.filter(tipo=tipo)
-            if not monumentos.exists():
-                return JsonResponse({"status": "error", "message": "No se encontraron monumentos del tipo indicado"}, status=404)
+            tipo_normalizado = normalize_text(tipo)
+            monumentos = [
+                m for m in monumentos
+                if normalize_text(m.tipo) == tipo_normalizado
+            ]
+            print(f"Filtro tipo normalizado: {tipo_normalizado}")
+
+        # Filtro por código postal
         if codigo_postal:
-            monumentos = monumentos.filter(codigo_postal=codigo_postal)
-            if not monumentos.exists():
-                return JsonResponse({"status": "error", "message": "No se encontraron monumentos con el código postal indicado"}, status=404)
+            monumentos = [
+                m for m in monumentos
+                if m.codigo_postal == codigo_postal
+            ]
+            print(f"Filtro código postal: {codigo_postal}")
+
+        # Si no hay resultados, devuelve un error
+        if not monumentos:
+            return JsonResponse(
+                {"status": "error", "message": "No se encontraron monumentos que coincidan con los filtros aplicados"},
+                status=404
+            )
+
+        # Construir la respuesta
         for monumento in monumentos:
             response.append({
-                    "table":{
-                        "name": monumento.nombre,
-                        "type": monumento.tipo,
-                        "addres": monumento.direccion,
-                        "locality": monumento.en_localidad.nombre,
-                        "postalCode": monumento.codigo_postal,
-                        "provincie": monumento.en_localidad.en_provincia.nombre,
-                        "description": monumento.descripcion
-                    },
-                    "coordinates":[monumento.longitud, monumento.latitud],
-                })
-        return JsonResponse(response,safe = False ,status=200, json_dumps_params={'ensure_ascii': False})
+                "table": {
+                    "name": monumento.nombre,
+                    "type": monumento.tipo,
+                    "addres": monumento.direccion,
+                    "locality": monumento.en_localidad.nombre,
+                    "postalCode": monumento.codigo_postal,
+                    "provincie": monumento.en_localidad.en_provincia.nombre,
+                    "description": monumento.descripcion
+                },
+                "coordinates": [monumento.longitud, monumento.latitud],
+            })
+
+        return JsonResponse(response, safe=False, status=200, json_dumps_params={'ensure_ascii': False})
+
     else:
         return JsonResponse({"status": "error", "message": "Método no permitido. Usa GET"}, status=405)
+    
+
+def normalize_text(text):
+    """Normaliza el texto eliminando tildes y convirtiendo a minúsculas."""
+    normalized = ''.join(
+        c for c in unicodedata.normalize('NFD', text)
+        if unicodedata.category(c) != 'Mn'
+    ).lower()
+    print(f"Original: {text} | Normalizado: {normalized}")
+    return normalized
+
+def split_and_normalize(text):
+    """Divide un texto compuesto por '-' o '/' y normaliza cada parte."""
+    parts = [part for separator in ['-', '/'] for part in text.split(separator)]
+    return [normalize_text(part) for part in parts]
