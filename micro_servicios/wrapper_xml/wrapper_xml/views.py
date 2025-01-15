@@ -216,6 +216,8 @@ def extractor_xml(request):
                 localidad = monument.find('./poblacion/localidad')
                 if localidad is not None and localidad.text is not None:
                     localidadName = localidad.text
+                    if localidadName == "Raso (El)":
+                        localidadName = "El Raso"
                     if existe_localidad(report, localidadName):
                         report["Descartados"]["Localidades"].append({
                             "linea": counter,
