@@ -52,7 +52,7 @@ def extractor_xml(request):
     if request.method == 'GET':
         print(FUENTES_DE_DATOS_DIR)
         # Parse the XML file
-        tree = ET.parse(FUENTES_DE_DATOS_DIR + '//monumentos_final.xml')
+        tree = ET.parse(FUENTES_DE_DATOS_DIR + '\\monumentos final.xml')
         root = tree.getroot()
 
         # Initialize the resulting JSON structure and counters
@@ -187,14 +187,102 @@ def extractor_xml(request):
                 # Map the province
                 province = monument.find('./poblacion/provincia')
                 if province is not None and province.text is not None:
-                    provinceConstructor = province.text
-                    if existe_provincia(report, province.text):
-                        report["Descartados"]["Provincias"].append({
+                    provinceConstructor = province.text.capitalize()
+                    if(provinceConstructor != "Segovia"
+                       and provinceConstructor != "Ávila"
+                       and provinceConstructor != "Burgos"
+                       and provinceConstructor != "León"
+                       and provinceConstructor != "Palencia"
+                       and provinceConstructor != "Salamanca"
+                       and provinceConstructor != "Soria"
+                       and provinceConstructor != "Valladolid"
+                       and provinceConstructor != "Zamora"):
+                        if provinceMispelled(provinceConstructor, "Segovia") != provinceConstructor:
+                            report["Reparados"]["total"] += 1
+                            report["Reparados"]["Provincias"].append({
+                                "linea" : counter,
+                                "nombre": provinceConstructor,
+                                "motivo": "La provincia esta mal escrita"
+                            })
+                            provinceConstructor = "Segovia"
+                        elif provinceMispelled(provinceConstructor, "Ávila") != provinceConstructor:
+                            report["Reparados"]["total"] += 1
+                            report["Reparados"]["Provincias"].append({
+                                "linea" : counter,
+                                "nombre": provinceConstructor,
+                                "motivo": "La provincia esta mal escrita"
+                            })
+                            provinceConstructor = "Ávila"
+                        elif provinceMispelled(provinceConstructor, "Burgos") != provinceConstructor:
+                            report["Reparados"]["total"] += 1
+                            report["Reparados"]["Provincias"].append({
+                                "linea" : counter,
+                                "nombre": provinceConstructor,
+                                "motivo": "La provincia esta mal escrita"
+                            })
+                            provinceConstructor = "Burgos"
+                        elif provinceMispelled(provinceConstructor, "León") != provinceConstructor:
+                            report["Reparados"]["total"] += 1
+                            report["Reparados"]["Provincias"].append({
+                                "linea" : counter,
+                                "nombre": provinceConstructor,
+                                "motivo": "La provincia esta mal escrita"
+                                })
+                            provinceConstructor = "León"
+                        elif provinceMispelled(provinceConstructor, "Palencia") != provinceConstructor:
+                            report["Reparados"]["total"] += 1
+                            report["Reparados"]["Provincias"].append({
+                                "linea" : counter,
+                                "nombre": provinceConstructor,
+                                "motivo": "La provincia esta mal escrita"
+                                })
+                            provinceConstructor = "Palencia"
+                        elif provinceMispelled(provinceConstructor, "Salamanca") != provinceConstructor:
+                            report["Reparados"]["total"] += 1
+                            report["Reparados"]["Provincias"].append({
+                                "linea" : counter,
+                                "nombre": provinceConstructor,
+                                "motivo": "La provincia esta mal escrita"
+                                })
+                            provinceConstructor = "Salamanca"
+                        elif provinceMispelled(provinceConstructor, "Soria") != provinceConstructor:
+                            report["Reparados"]["total"] += 1
+                            report["Reparados"]["Provincias"].append({
+                                "linea" : counter,
+                                "nombre": provinceConstructor,
+                                "motivo": "La provincia esta mal escrita"
+                                })
+                            provinceConstructor = "Soria"
+                        elif provinceMispelled(provinceConstructor, "Valladolid") != provinceConstructor:
+                            report["Reparados"]["total"] += 1
+                            report["Reparados"]["Provincias"].append({
+                                "linea" : counter,
+                                "nombre": provinceConstructor,
+                                "motivo": "La provincia esta mal escrita"
+                                })
+                            provinceConstructor = "Valladolid"
+                        elif provinceMispelled(provinceConstructor, "Zamora") != provinceConstructor:
+                            report["Reparados"]["total"] += 1
+                            report["Reparados"]["Provincias"].append({
+                                "linea" : counter,
+                                "nombre": provinceConstructor,
+                                "motivo": "La provincia esta mal escrita"
+                                })
+                            provinceConstructor = "Zamora"
+                        else:
+                            report["Descartados"]["total"] += 1
+                            report["Descartados"]["Provincias"].append({
+                                "linea": counter,
+                                "nombre": provinceConstructor,
+                                "motivo": "La provincia no es reconocida."
+                            })
+                            report["Descartados"]["Monumento"].append({
                             "linea": counter,
-                            "nombre": provinceConstructor,
-                            "motivo": "Provincia repetida."
-                        })
-                    else:
+                            "nombre": nameConstructor,
+                            "motivo": "La provincia no es reconocida."
+                            })
+                            continue
+                    if not existe_provincia(report, province.text):
                         report["Registrados"]["Provincias"].append({
                             "nombre": provinceConstructor
                         })
@@ -208,7 +296,7 @@ def extractor_xml(request):
                     report["Descartados"]["Monumento"].append({
                         "linea": counter,
                         "nombre": nameConstructor,
-                        "motivo": "Falta la localidad."
+                        "motivo": "Falta la provincia."
                     })
                     continue
 
@@ -218,13 +306,7 @@ def extractor_xml(request):
                     localidadName = localidad.text
                     if localidadName == "Raso (El)":
                         localidadName = "El Raso"
-                    if existe_localidad(report, localidadName):
-                        report["Descartados"]["Localidades"].append({
-                            "linea": counter,
-                            "nombre": localidadName,
-                            "motivo": "Localidad repetida."
-                        })
-                    else:
+                    if not existe_localidad(report, localidadName):
                         report["Registrados"]["Localidades"].append({
                             "nombre": localidadName,
                             "en_provincia": provinceConstructor
@@ -329,3 +411,13 @@ def existe_provincia(report, nombre):
         if monumento.get("nombre", "").lower() == nombre.lower():
             return True
     return False
+
+#Si la provincia esta mal escrita la corrige sino la deja igual
+def provinceMispelled(palabra1, provinciaCorrecta):
+    if len(palabra1) != len(provinciaCorrecta):
+        return palabra1
+    diferencias = sum(1 for a, b in zip(palabra1, provinciaCorrecta) if a != b)
+    if diferencias == 1:
+        return provinciaCorrecta
+    else:
+        return palabra1
