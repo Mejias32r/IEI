@@ -5,6 +5,7 @@ const euskadi = document.getElementById('euskadi')
 const btnEnviar = document.getElementById('enviar')
 const btnReiniciarBd = document.getElementById('reiniciar_db')
 const textArea = document.getElementById('result_box')
+const spinner = document.getElementById('spinner')
 
 
 function activarTodas(){
@@ -34,6 +35,8 @@ todas.addEventListener('change', function(){
 
 
 btnEnviar.addEventListener('click', function(){
+    textArea.textContent = '';
+    spinner.style.display = 'block';
     fetch('/main/cargar-almacen-datos/' ,{
         method: 'POST',
         headers:{
@@ -48,26 +51,36 @@ btnEnviar.addEventListener('click', function(){
     .then(response => response.json())
     .then(data =>{
         textArea.textContent = JSON.stringify(data.informe, null, 2);
+        spinner.style.display = 'none';
     })
     .catch(error => {
         console.error('Error:', error);
         textArea.textContent = 'Ocurrió un error al cargar los datos.';
+        spinner.style.display = 'none';
     });
 })
 
 btnReiniciarBd.addEventListener('click', function(){
+    textArea.textContent = '';
+    spinner.style.display = 'block';
     fetch('/main/vaciar-almacen-datos/', {	
-        method: 'POST',
+        method: 'DELETE',
         headers:{
             'Content-Type': 'application/json',
         },
     })
     .then(response => response.json())
-    .then(data =>{
-        if(data.status == 'success'){
+    .then(data => {
+        if (data.status == 'success') {
             textArea.textContent = 'Base de datos reiniciada correctamente'
-        }else{
-            alert("Algo ha slido mal:" + data.message)
+        } else {
+            alert("Algo ha salido mal:" + data.message)
         }
+        spinner.style.display = 'none'; // Ocultar spinner
     })
+    .catch(error => {
+        console.error('Error:', error);
+        textArea.textContent = 'Ocurrió un error al reiniciar la base de datos.';
+        spinner.style.display = 'none'; // Ocultar spinner
+    });
 })
