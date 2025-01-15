@@ -3,6 +3,9 @@ from django.http import JsonResponse
 from django.http import JsonResponse
 from .settings import FUENTES_DE_DATOS_DIR
 import json
+from drf_yasg.utils import swagger_auto_schema
+from drf_yasg import openapi
+from rest_framework.decorators import api_view
 
 
 class Tipo():
@@ -79,7 +82,45 @@ def existe_provincia(report, nombre):
             return True
     return False
 
+@swagger_auto_schema(
+    method='GET',
+    operation_summary="Extract data from JSON",
+    operation_description="Reads a JSON file and processes the monument data.",
+    responses={
+        200: openapi.Response(
+            description="JSON processed successfully",
+            examples={
+                "application/json": {
+                    "nombre": "Wrapper_JSON",
+                        "total": {"count": 0},
+                        "Registrados": {
+                            "count": 0,
+                            "Provincias": ["..."],
+                            "Localidades": ["..."],
+                            "Monumentos": ["..."]
+                        },
+                        "Descartados": {
+                            "total": 0,
+                            "Provincias": ["..."],
+                            "Localidades": ["..."],
+                            "Monumento": ["..."]
+                        },
+                        "Reparados": {
+                            "total": 0,
+                            "Provincias": ["..."],
+                            "Localidades": ["..."],
+                            "Monumento": ["..."]
+                        }
+                }
+            },
+        ),
+        500: "Error processing the JSON file",
+        405: "Method Not Allowed",
+    },
+)
+
 # Función principal que procesa el archivo JSON
+@api_view(['GET'])
 def extract_json(request):
     if request.method == 'GET':
         json_path = f"{FUENTES_DE_DATOS_DIR}/edificios_final.json"
