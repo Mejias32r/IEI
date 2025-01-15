@@ -31,7 +31,7 @@ def vaciar_almacen_datos(request):
             except Exception as e:
                 return JsonResponse({"status": "error", "message": f"Ocurrió un error: {str(e)}"}, status = 500)
     else:
-        return JsonResponse({"status": "error", "message": "Método no permitido. Usa POST."}, status = 405)
+        return JsonResponse({"status": "error", "message": "Método no permitido. Usa DELETE."}, status = 405)
 
 
 @csrf_exempt
