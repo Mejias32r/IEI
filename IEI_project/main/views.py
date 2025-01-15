@@ -437,7 +437,7 @@ get_monumentos_filtered_query_params = [
             },
         ),
     },
-    parameters=get_monumentos_filtered_query_params
+    manual_parameters=get_monumentos_filtered_query_params
 )
 @api_view(['GET'])
 def get_monumentos_filtered(request):
