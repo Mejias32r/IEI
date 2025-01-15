@@ -259,6 +259,8 @@ def getPostalandAddress(longd, latgd):
 
 @api_view(['GET'])
 def extractor_csv(request):
+    if request.method != 'GET':
+        return JsonResponse({"error": "Method not allowed."}, status=405)
     driver = startPage()
     with open(FUENTES_DE_DATOS_DIR + '/bienes_inmuebles_interes_cultural.csv', encoding='utf-8') as file:
         reader = csv.reader(file, delimiter=";")
