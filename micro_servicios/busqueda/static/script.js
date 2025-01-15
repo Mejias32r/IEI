@@ -4,15 +4,7 @@ export async function initFilteredSearch(){
     let cp = document.getElementById("codigo-postal").value
     let provincia = document.getElementById("provincia").value
     let tipo = document.getElementById("tipo").value
-    let json = await filteredSearch(localidad, cp, provincia, tipo)
-    let coordList = []
-    let monumentList = []
-    json.forEach(element =>{
-        coordList.push(element.coordinates)
-        monumentList.push(element.table)
-    })
-    buildMap(coordList)
-    buildTable(monumentList)
+    await filteredSearch(localidad, cp, provincia, tipo)
 }
 
 
@@ -78,14 +70,61 @@ const map = new ol.Map({
     })
 });
 
+const popupContainer = document.createElement('div');
+popupContainer.className = 'ol-popup';
 
-export async function buildMap(coordList){
+const popupCloser = document.createElement('a');
+popupCloser.className = 'ol-popup-closer';
+popupCloser.href = '#';
+popupCloser.innerHTML = '×';
+popupContainer.appendChild(popupCloser);
+
+const popupContent = document.createElement('div');
+popupContainer.appendChild(popupContent);
+
+const overlay = new ol.Overlay({
+    element: popupContainer,
+    autoPan: true,
+    autoPanAnimation: {
+        duration: 250,
+    },
+});
+
+popupCloser.onclick = function () {
+    overlay.setPosition(undefined);
+    return false;
+};
+
+map.addOverlay(overlay);
+
+map.on('singleclick', function (event) {
+    map.forEachFeatureAtPixel(event.pixel, function (feature) {
+        const name = feature.get('name');
+        const description = feature.get('description');
+        const coordinate = feature.getGeometry().getCoordinates();
+
+        // Actualizar el contenido del popup
+        popupContent.innerHTML = `<strong>${name}</strong><br>${description}`;
+        overlay.setPosition(coordinate);
+    });
+});
+
+export async function buildMap(coordList,monumentList){
     const vectorSource = new ol.source.Vector();
+    let count = 0
+
+    map.getLayers().forEach((layer) => {
+        if (layer instanceof ol.layer.Vector) {
+            map.removeLayer(layer);
+        }
+    });
 
     coordList.forEach(element => {
 
         const marker = new ol.Feature({
-            geometry: new ol.geom.Point(ol.proj.fromLonLat(element))
+            geometry: new ol.geom.Point(ol.proj.fromLonLat(element)),
+            name:monumentList[count].name,
+            description:monumentList[count].description,
         });
         const markerStyle = new ol.style.Style({
             image: new ol.style.Icon({
@@ -95,6 +134,7 @@ export async function buildMap(coordList){
         });
         marker.setStyle(markerStyle);
         vectorSource.addFeature(marker);
+        count++
     });
     const vectorLayer = new ol.layer.Vector({
         source: vectorSource
@@ -104,52 +144,41 @@ export async function buildMap(coordList){
 }   
 
 async function filteredSearch(localidad,cp,provincia,tipo){
-    let url = rootURL+"filteredSearch/"
+    let url = rootURL+"main/get-monumentos/"
+    if(!localidad || localidad == null){localidad=''}
+    if(!cp || cp == null){cp=''}
+    if(!provincia || provincia == null){provincia=''}
+    if(!tipo || tipo == null){tipo=''}
+
     const params = {
-        localty: localidad,
-        postalCode: cp,
-        province: provincia,
-        type: tipo
+        localidad: localidad,
+        codigo_postal: cp,
+        provincia: provincia,
+        tipo: tipo
     };
 
     const queryString = new URLSearchParams(params).toString();
     const completedUrl = `${url}?${queryString}`;
-    /*
+    console.log("Petición a:"+ completedUrl)
+    
     fetch(completedUrl)
         .then(response => {
             if(!response.ok){
-                throw new Error('Error en la solicitud');
+                
             }
-            console.log(response.json())
-            let json = response.json()
+            return response.json()
         })
-    */
-    let arrayJson =
-    [{
-        table : {
-            name :"Puente Romano" ,
-            type:"Puente",
-            address:"Calle Antigua",
-            localty:"Sevilla",
-            postalCode:"41001",
-            province:"Sevilla",
-            description: "Puente histórico de la época romana 2222222."
-        },
-        coordinates: [-0.8656800,38.6373000]
-    },{
-        table : {
-            name :"Puente Romano" ,
-            type:"Puente",
-            address:"Calle Antigua",
-            localty:"Sevilla",
-            postalCode:"41001",
-            province:"Sevilla",
-            description: "Puente histórico de la época romana 2222222."
-        },
-        coordinates: [-0.4814900,38.3451700]
-    }]
-    
-    return arrayJson
+        .then(data=>{
+            console.log(data)
+            let coordList = []
+            let monumentList = []
+            data.forEach(element =>{
+                coordList.push(element.coordinates)
+                monumentList.push(element.table)
+            })
+            buildMap(coordList,monumentList)
+            buildTable(monumentList)
+        })
 }
 
 document.addEventListener('DOMContentLoaded', () =>{
@@ -157,7 +186,6 @@ document.addEventListener('DOMContentLoaded', () =>{
     console.log("perticion debería enviarse")
     fetch(url)
         .then(response => {
-            console.log(response)
             if (!response.ok) {
                 throw new Error('Error en la solicitud: ' + response.status);
             }
@@ -171,7 +199,7 @@ document.addEventListener('DOMContentLoaded', () =>{
                 coordList.push(element.coordinates)
                 monumentList.push(element.table)
             })
-            buildMap(coordList)
+            buildMap(coordList,monumentList)
             buildTable(monumentList)
         })
 })
