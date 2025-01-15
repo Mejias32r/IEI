@@ -27,8 +27,8 @@ get_monumentos_filtered_query_params = [
 # Swagger Schema for get_monumentos_filtered
 @swagger_auto_schema(
     method='GET',
-    operation_summary="Retrieve monuments with optional filters",
-    operation_description="Fetch monuments based on optional filters. If no filters are provided, all monuments will be returned.",
+    operation_summary="Obtiene todos los monumentos con filtros",
+    operation_description="Obtiene monumentos en función de filtros opcionales. Si no se proporcionan filtros, se devolverán todos los monumentos.",
     responses={
         200: openapi.Response(
             description="List of monuments",
@@ -81,8 +81,8 @@ def cargar_filtrado(request):
 # Swagger Schema for get_monumentos
 @swagger_auto_schema(
     method='GET',
-    operation_summary="Retrieve all monuments",
-    operation_description="Fetch all monuments.",
+    operation_summary="Obtiene todos los monumentos",
+    operation_description="Obtiene todos los monumentos.",
     responses={
         200: openapi.Response(
             description="List of monuments",
