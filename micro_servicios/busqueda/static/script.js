@@ -183,7 +183,6 @@ async function filteredSearch(localidad,cp,provincia,tipo){
                 coordList.push(element.coordinates)
                 monumentList.push(element.table)
             })
-            buildMap(coordList,monumentList)
             buildTable(monumentList)
         })
 }
