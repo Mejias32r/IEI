@@ -40,7 +40,7 @@ report = {
     }
 }
 
-fila = 0
+fila = 1
 
 def buildMonument(driver, id, denominacion: str, provincia, municipio, utmeste, utmnorte, codclasificacion, clasificacion, codcategoria, categoria):
     try:
@@ -216,7 +216,7 @@ def getPostalandAddress(longd, latgd):
 
     if (postcode is None or postcode == "" or
         address  is None or address  == ""):
-        raise ValueError(["Monumento","Error al encontrar el código postal o la dirección. Seguramente error con la API."])
+        raise ValueError(["Monumento","Error al encontrar el código postal o la dirección. La Api no devuelve el código postal."])
     return postcode, address, province
 
 # Swagger Schema for extractor_csv
@@ -401,6 +401,6 @@ def reset_globals():
             "Monumento": []
         }
     }
-    fila = 0
+    fila = 1
 ##Execute
 #extractor_csv(1)

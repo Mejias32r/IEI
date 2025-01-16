@@ -178,11 +178,11 @@ async function filteredSearch(localidad,cp,provincia,tipo){
     fetch(completedUrl)
         .then(response => {
             if(!response.ok){
-                const table = document.getElementById("resultTable").querySelector("tbody");
-                table.innerHTML = ""
-                throw new Error('Error en la solicitud: ' + response.status);
-
-                
+                response.json().then(data => {
+                    const table = document.getElementById("resultTable").querySelector("tbody");
+                    table.innerHTML = ""
+                    alert("Codigo respuesta API: " + response.status + "\n" +data.message)
+                }) 
             }
             return response.json()
         })

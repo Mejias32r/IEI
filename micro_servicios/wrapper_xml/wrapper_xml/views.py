@@ -52,7 +52,7 @@ def extractor_xml(request):
     if request.method == 'GET':
         print(FUENTES_DE_DATOS_DIR)
         # Parse the XML file
-        tree = ET.parse(FUENTES_DE_DATOS_DIR + '\\monumentos final.xml')
+        tree = ET.parse(FUENTES_DE_DATOS_DIR + '\\monumentos_final.xml')
         root = tree.getroot()
 
         # Initialize the resulting JSON structure and counters
