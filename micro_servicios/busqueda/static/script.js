@@ -171,7 +171,9 @@ async function filteredSearch(localidad,cp,provincia,tipo){
     fetch(completedUrl)
         .then(response => {
             if(!response.ok){
-                
+                response.json().then(data => {
+                    alert("Codigo respuesta API: " + response.status + "\n" +data.message)
+                })
             }
             return response.json()
         })
