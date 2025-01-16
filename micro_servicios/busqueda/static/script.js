@@ -1,4 +1,6 @@
 var rootURL="http://localhost:8080/"
+
+//Función a la que se llama cuándo le pulsas al botón de búsqueda y obtiene los valores de los filtros
 export async function initFilteredSearch(){
     let localidad = document.getElementById("localidad").value
     let cp = document.getElementById("codigo-postal").value
@@ -7,7 +9,7 @@ export async function initFilteredSearch(){
     await filteredSearch(localidad, cp, provincia, tipo)
 }
 
-
+//Creación de la tabla con la lista de los monumentos dados.
 export async function buildTable(jsonList){
     const table = document.getElementById("resultTable").querySelector("tbody");
 
@@ -48,7 +50,7 @@ export async function buildTable(jsonList){
     });
 }
 
-
+//Limpia los filtros, se llama al pulsar sobre el botón de cancelar
 export function cancel(){
     document.getElementById("localidad").value = ""
     document.getElementById("codigo-postal").value = ""
@@ -56,20 +58,21 @@ export function cancel(){
     document.getElementById("tipo").value = ""
 }
 
+//Crear el mapa
 const map = new ol.Map({
     target: 'map',
     layers: [
-        // Capa base de mapa (OpenStreetMap)
         new ol.layer.Tile({
             source: new ol.source.OSM()
         })
     ],
     view: new ol.View({
-        center: ol.proj.fromLonLat([-3.7038, 40.4168]), // Coordenadas de Madrid
-        zoom: 6 // Nivel de zoom
+        center: ol.proj.fromLonLat([-3.7038, 40.4168]), 
+        zoom: 6 
     })
 });
 
+//Crea el overlay para mostrar la información sobre el mapa
 const popupContainer = document.createElement('div');
 popupContainer.className = 'ol-popup';
 
@@ -90,6 +93,7 @@ const overlay = new ol.Overlay({
     },
 });
 
+//Elimina el overlay al pulsar sobre el botón
 popupCloser.onclick = function () {
     overlay.setPosition(undefined);
     return false;
@@ -97,6 +101,7 @@ popupCloser.onclick = function () {
 
 map.addOverlay(overlay);
 
+//Muestra el overlay al clickar sobre un marker
 map.on('singleclick', function (event) {
     map.forEachFeatureAtPixel(event.pixel, function (feature) {
         const name = feature.get('name');
@@ -109,6 +114,7 @@ map.on('singleclick', function (event) {
     });
 });
 
+//Crea los markers para el mapa dadas las coordenadas y la lista de monumentos
 export async function buildMap(coordList,monumentList){
     const vectorSource = new ol.source.Vector();
     let count = 0
@@ -143,6 +149,7 @@ export async function buildMap(coordList,monumentList){
 
 }   
 
+//Inicia la búsqueda filtrada llamando a la API, teniendo en cuenta los filtros
 async function filteredSearch(localidad,cp,provincia,tipo){
     let url = rootURL+"main/get-monumentos/"
     if(!localidad || localidad == null){localidad=''}
@@ -181,6 +188,7 @@ async function filteredSearch(localidad,cp,provincia,tipo){
         })
 }
 
+//Carga todos los monumentos al iniciar el documento
 document.addEventListener('DOMContentLoaded', () =>{
     let url = rootURL + "main/get-monumentos"
     console.log("perticion debería enviarse")
