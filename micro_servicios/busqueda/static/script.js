@@ -105,11 +105,14 @@ map.addOverlay(overlay);
 map.on('singleclick', function (event) {
     map.forEachFeatureAtPixel(event.pixel, function (feature) {
         const name = feature.get('name');
+        const type = feature.get('type')
+        const direccion = feature.get('direccion')
+        const provincia = feature.get('provincia')
+        const localidad = feature.get('localidad')
         const description = feature.get('description');
         const coordinate = feature.getGeometry().getCoordinates();
-
         // Actualizar el contenido del popup
-        popupContent.innerHTML = `<strong>${name}</strong><br>${description}`;
+        popupContent.innerHTML = `<strong>${name}</strong><br>${type}</br><br>${provincia}</br><br>${localidad + ".\n" + direccion}</br><br>${description}`;
         overlay.setPosition(coordinate);
     });
 });
@@ -130,6 +133,10 @@ export async function buildMap(coordList,monumentList){
         const marker = new ol.Feature({
             geometry: new ol.geom.Point(ol.proj.fromLonLat(element)),
             name:monumentList[count].name,
+            type:monumentList[count].type,
+            direccion: monumentList[count].addres,
+            provincia: monumentList[count].provincie, 
+            localidad : monumentList[count].locality + ", " + monumentList[count].postalCode,
             description:monumentList[count].description,
         });
         const markerStyle = new ol.style.Style({
@@ -171,6 +178,10 @@ async function filteredSearch(localidad,cp,provincia,tipo){
     fetch(completedUrl)
         .then(response => {
             if(!response.ok){
+                const table = document.getElementById("resultTable").querySelector("tbody");
+                table.innerHTML = ""
+                throw new Error('Error en la solicitud: ' + response.status);
+
                 
             }
             return response.json()
